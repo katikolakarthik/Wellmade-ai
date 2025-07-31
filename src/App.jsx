@@ -1,5 +1,6 @@
-import React, { useState, useRef } from 'react';
-import { Brain, FileText, Mic, CheckCircle, Bookmark, MessageSquare } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Brain, FileText, Mic, CheckCircle, Bookmark, MessageSquare, Sun, Moon } from 'lucide-react';
+import Chat from './components/Chat';
 import './App.css';
 
 function App() {
@@ -8,32 +9,142 @@ function App() {
   const [answer, setAnswer] = useState('DRG 291 represents Heart Failure & Shock with MCC.\n\nExample: A 65-year-old admitted with CHF and AKI undergoing treatment would be categorized under this DRG due to major complications.');
   const [isLoading, setIsLoading] = useState(false);
   const [uploadedFile, setUploadedFile] = useState(null);
+  const [isListening, setIsListening] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const fileInputRef = useRef(null);
+  const recognitionRef = useRef(null);
+
+  // Theme management
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      setIsDarkMode(true);
+      document.documentElement.classList.add('dark');
+    } else {
+      setIsDarkMode(false);
+      document.documentElement.classList.remove('dark');
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const newTheme = !isDarkMode;
+    setIsDarkMode(newTheme);
+    
+    if (newTheme) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  };
+
+  // Initialize speech recognition
+  const initializeSpeechRecognition = () => {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      alert('Speech recognition is not supported in this browser. Please use Chrome or Edge.');
+      return null;
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = 'en-US';
+
+    recognition.onstart = () => {
+      setIsListening(true);
+    };
+
+    recognition.onresult = (event) => {
+      if (event.results.length > 0 && event.results[0].length > 0) {
+        const transcript = event.results[0][0].transcript;
+        setQuestion(transcript);
+      }
+      setIsListening(false);
+    };
+
+    recognition.onerror = (event) => {
+      console.error('Speech recognition error:', event.error);
+      setIsListening(false);
+      if (event.error === 'not-allowed') {
+        alert('Please allow microphone access to use speech recognition.');
+      } else if (event.error === 'no-speech') {
+        alert('No speech detected. Please try speaking again.');
+      } else {
+        alert(`Speech recognition error: ${event.error}`);
+      }
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+
+    return recognition;
+  };
+
+  const handleSpeakToAsk = () => {
+    if (isListening) {
+      // Stop listening
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+      setIsListening(false);
+      return;
+    }
+
+    // Start listening
+    try {
+      if (!recognitionRef.current) {
+        recognitionRef.current = initializeSpeechRecognition();
+      }
+
+      if (recognitionRef.current) {
+        recognitionRef.current.start();
+      } else {
+        alert('Speech recognition is not available. Please use Chrome or Edge browser.');
+      }
+    } catch (error) {
+      console.error('Error starting speech recognition:', error);
+      alert('Error starting speech recognition. Please try again.');
+      setIsListening(false);
+    }
+  };
+
+
 
   const handleAskAI = async () => {
     if (!question.trim()) return;
     
     setIsLoading(true);
     try {
-      const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent', {
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-goog-api-key': import.meta.env.VITE_GOOGLE_GEMINI_API_KEY
+          'Authorization': `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`
         },
         body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: `answer  like chatgpt : ${question}. 
-`
-            }]
-          }]
+          model: 'gpt-4o-mini',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are a helpful medical coding assistant. Provide clear, accurate answers about DRG codes, CPT codes, medical coding guidelines, and related topics.'
+            },
+            {
+              role: 'user',
+              content: question
+            }
+          ],
+          max_tokens: 1000,
+          temperature: 0.7
         })
       });
 
       const data = await response.json();
-      if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-        const aiResponse = data.candidates[0].content.parts[0].text;
+      if (data.choices && data.choices[0] && data.choices[0].message) {
+        const aiResponse = data.choices[0].message.content;
         setAnswer(aiResponse);
       } else {
         setAnswer('I apologize, but I encountered an issue processing your request. Please try again.');
@@ -95,9 +206,27 @@ function App() {
       <div className="container">
         {/* Header */}
         <div className="header">
-          <div className="title-section">
-            <Brain className="brain-icon" />
-            <h1>WellMed AI - Your AI Coding Assistant</h1>
+          <div className="header-top">
+            <div className="title-section">
+              <Brain className="brain-icon" />
+              <h1>WellMed AI - Your AI Coding Assistant</h1>
+            </div>
+            <div className="theme-toggle-switch">
+              <button
+                onClick={() => !isDarkMode && toggleTheme()}
+                className={`theme-option ${!isDarkMode ? 'active' : ''}`}
+                title="Light Mode"
+              >
+                <Sun size={16} />
+              </button>
+              <button
+                onClick={() => isDarkMode && toggleTheme()}
+                className={`theme-option ${isDarkMode ? 'active' : ''}`}
+                title="Dark Mode"
+              >
+                <Moon size={16} />
+              </button>
+            </div>
           </div>
           <p className="tagline">Helping you master Medical Coding, IP-DRG, CPC, CDI & more.</p>
         </div>
@@ -124,95 +253,106 @@ function App() {
           </button>
         </div>
 
-        {/* Question Section */}
-        <div className="question-section">
-          <h3>Ask a question or upload your summary below:</h3>
-          <div className="input-container">
-            <textarea
-              value={question}
-              onChange={(e) => setQuestion(e.target.value)}
-              placeholder="Ask your medical coding question..."
-              className="question-input"
-            />
-            <div className="button-group">
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileUpload}
-                accept=".pdf"
-                style={{ display: 'none' }}
-              />
-              <button 
-                className={`upload-btn ${uploadedFile ? 'uploaded' : ''}`} 
-                onClick={handleUploadClick}
-              >
-                <FileText />
-                {uploadedFile ? `Remove PDF: ${uploadedFile.name}` : 'Upload Case PDF'}
+        {/* Content based on active tab */}
+        {activeTab === 'chat' ? (
+          <Chat isDarkMode={isDarkMode} toggleTheme={toggleTheme} />
+        ) : (
+          <>
+            {/* Question Section */}
+            <div className="question-section">
+              <h3>Ask a question or upload your summary below:</h3>
+              <div className="input-container">
+                <textarea
+                  value={question}
+                  onChange={(e) => setQuestion(e.target.value)}
+                  placeholder="Ask your medical coding question..."
+                  className="question-input"
+                />
+                <div className="button-group">
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileUpload}
+                    accept=".pdf"
+                    style={{ display: 'none' }}
+                  />
+                  <button 
+                    className={`upload-btn ${uploadedFile ? 'uploaded' : ''}`} 
+                    onClick={handleUploadClick}
+                  >
+                    <FileText />
+                    {uploadedFile ? `Remove PDF: ${uploadedFile.name}` : 'Upload Case PDF'}
+                  </button>
+                  <button 
+                    className={`speak-btn ${isListening ? 'listening' : ''}`}
+                    onClick={handleSpeakToAsk}
+                    disabled={isLoading}
+                  >
+                    <Mic />
+                    {isListening ? 'Listening...' : 'Speak to Ask'}
+                  </button>
+                  <button 
+                    className="ask-btn"
+                    onClick={handleAskAI}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? 'Processing...' : 'Ask AI'}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Answer Section */}
+            <div className="answer-section">
+              <div className="answer-header">
+                <Brain className="brain-icon" />
+                <h3>Answer:</h3>
+              </div>
+              <div className="answer-content">
+                {answer.split('\n').map((line, index) => (
+                  <p key={index}>{line}</p>
+                ))}
+              </div>
+            </div>
+
+            {/* Tip Section */}
+            <div className="tip-section">
+              <div className="tip-header">
+                <CheckCircle className="check-icon" />
+                <h4>Tip:</h4>
+              </div>
+              <p>MCC increases reimbursement; watch for renal codes when coding heart failure cases.</p>
+            </div>
+
+            {/* Action Links */}
+            <div className="action-links">
+              <button className="action-link">
+                <MessageSquare />
+                Ask for Clarification
               </button>
-              <button className="speak-btn">
-                <Mic />
-                Speak to Ask
-              </button>
-              <button 
-                className="ask-btn"
-                onClick={handleAskAI}
-                disabled={isLoading}
-              >
-                {isLoading ? 'Processing...' : 'Ask AI'}
+              <button className="action-link">
+                <Bookmark />
+                Bookmark this Answer
               </button>
             </div>
-          </div>
-        </div>
 
-        {/* Answer Section */}
-        <div className="answer-section">
-          <div className="answer-header">
-            <Brain className="brain-icon" />
-            <h3>Answer:</h3>
-          </div>
-          <div className="answer-content">
-            {answer.split('\n').map((line, index) => (
-              <p key={index}>{line}</p>
-            ))}
-          </div>
-        </div>
-
-        {/* Tip Section */}
-        <div className="tip-section">
-          <div className="tip-header">
-            <CheckCircle className="check-icon" />
-            <h4>Tip:</h4>
-          </div>
-          <p>MCC increases reimbursement; watch for renal codes when coding heart failure cases.</p>
-        </div>
-
-        {/* Action Links */}
-        <div className="action-links">
-          <button className="action-link">
-            <MessageSquare />
-            Ask for Clarification
-          </button>
-          <button className="action-link">
-            <Bookmark />
-            Bookmark this Answer
-          </button>
-        </div>
-
-        {/* Prompt Templates */}
-        <div className="prompt-templates">
-          <h4>Prompt Templates:</h4>
-          <div className="template-grid">
-            {promptTemplates.map((template, index) => (
-              <button
-                key={index}
-                className="template-btn"
-                onClick={() => handleTemplateClick(template)}
-              >
-                {template}
-              </button>
-            ))}
-          </div>
-        </div>
+            {/* Prompt Templates */}
+            <div className="prompt-templates">
+              <h4>Prompt Templates:</h4>
+              <div className="template-grid">
+                {promptTemplates.map((template, index) => (
+                  <button
+                    key={index}
+                    className="template-btn"
+                    onClick={() => handleTemplateClick(template)}
+                  >
+                    {template}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
