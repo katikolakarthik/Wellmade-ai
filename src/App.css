@@ -726,6 +726,72 @@ body {
   z-index: 1000;
 }
 
+/* Fullscreen mobile optimizations */
+@media (max-width: 768px) {
+  .chat-container.fullscreen {
+    height: 100vh;
+    width: 100vw;
+  }
+  
+  .chat-container.fullscreen .chat-input-container {
+    padding: 8px;
+    position: sticky;
+    bottom: 0;
+    background: white;
+    border-top: 1px solid #e2e8f0;
+  }
+  
+  .chat-container.fullscreen .input-wrapper {
+    gap: 4px;
+    padding: 6px 8px;
+  }
+  
+  .chat-container.fullscreen .chat-input {
+    min-height: 36px;
+    max-height: 80px;
+  }
+  
+  .chat-container.fullscreen .upload-file-btn {
+    min-width: 40px;
+    width: 40px;
+    height: 36px;
+  }
+  
+  .chat-container.fullscreen .mic-button,
+  .chat-container.fullscreen .send-button {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+@media (max-width: 480px) {
+  .chat-container.fullscreen .chat-input-container {
+    padding: 6px;
+  }
+  
+  .chat-container.fullscreen .input-wrapper {
+    gap: 3px;
+    padding: 4px 6px;
+  }
+  
+  .chat-container.fullscreen .chat-input {
+    min-height: 32px;
+    max-height: 60px;
+  }
+  
+  .chat-container.fullscreen .upload-file-btn {
+    min-width: 32px;
+    width: 32px;
+    height: 32px;
+  }
+  
+  .chat-container.fullscreen .mic-button,
+  .chat-container.fullscreen .send-button {
+    width: 32px;
+    height: 32px;
+  }
+}
+
 .chat-header {
   padding: 20px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -1024,28 +1090,24 @@ body {
 .upload-file-btn {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  padding: 8px 12px;
+  padding: 8px;
   background: #f7fafc;
   border: 2px solid #e2e8f0;
-  border-radius: 22px;
+  border-radius: 50%;
   font-size: 12px;
   font-weight: 500;
   color: #4a5568;
   cursor: pointer;
   transition: all 0.3s ease;
   height: 44px;
-  white-space: nowrap;
-  min-width: 120px;
-}
-
-.upload-file-btn.compact {
+  width: 44px;
   min-width: 44px;
-  padding: 8px;
-  gap: 0;
+  white-space: nowrap;
 }
 
-.upload-file-btn.compact .upload-text {
+.upload-file-btn .upload-text {
   display: none;
 }
 
@@ -1264,70 +1326,307 @@ body {
 /* Responsive Design */
 @media (max-width: 768px) {
   .container {
-    padding: 24px;
-    margin-top: 10px;
+    padding: 15px;
+    margin: 10px;
   }
   
   .header h1 {
-    font-size: 24px;
+    font-size: 20px;
+  }
+
+  .header-top {
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
+  }
+
+  .title-section {
+    justify-content: center;
+  }
+
+  .theme-toggle-switch {
+    align-self: flex-end;
   }
   
   .button-group {
     flex-direction: column;
+    gap: 10px;
   }
   
   .action-links {
     flex-direction: column;
     align-items: center;
+    gap: 12px;
   }
   
   .template-grid {
     grid-template-columns: 1fr;
+    gap: 10px;
   }
 
   .chat-container {
-    height: 60vh;
+    height: 70vh;
+    margin: 0;
+    border-radius: 12px;
+  }
+
+  .chat-container.fullscreen {
+    height: 100vh;
+    border-radius: 0;
   }
 
   .message-content {
-    max-width: 85%;
+    max-width: 90%;
   }
 
   .input-wrapper {
+    gap: 6px;
+    padding: 8px 12px;
+    flex-wrap: wrap;
+  }
+
+  .chat-input {
+    min-height: 40px;
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+
+  .upload-file-btn {
+    padding: 6px;
+    font-size: 11px;
+    min-width: 40px;
+    width: 40px;
+    height: 40px;
+  }
+
+  .mic-button, .send-button {
+    width: 40px;
+    height: 40px;
+  }
+
+  .chat-header {
+    padding: 15px;
+  }
+
+  .chat-header h2 {
+    font-size: 18px;
+  }
+
+  .chat-header p {
+    font-size: 12px;
+  }
+
+  .header-buttons {
     gap: 8px;
+  }
+
+  .fullscreen-toggle {
+    width: 36px;
+    height: 36px;
+  }
+
+  .theme-toggle-switch {
+    padding: 3px;
+  }
+
+  .theme-option {
+    width: 28px;
+    height: 28px;
+  }
+
+  .messages-container {
+    padding: 15px;
+    gap: 12px;
+  }
+
+  .message-text {
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+
+  .message-avatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  .input-hint {
+    font-size: 11px;
+    padding: 0 12px 8px;
+  }
+
+  /* Mobile chat input optimizations */
+  .chat-input-container {
+    padding: 12px;
+    background: white;
+  }
+
+  .input-wrapper {
+    gap: 4px;
+    padding: 6px 8px;
+    align-items: center;
+  }
+
+  .chat-input {
+    min-height: 36px;
+    max-height: 80px;
+    padding: 8px 12px;
+    font-size: 16px;
+    border-radius: 18px;
+  }
+
+  .upload-file-btn {
+    padding: 4px;
+    font-size: 10px;
+    min-width: 36px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+  }
+
+  .mic-button, .send-button {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+  }
+
+  .file-upload-section {
+    margin-bottom: 8px;
+  }
+
+  .input-hint {
+    font-size: 10px;
+    padding: 0 8px 4px;
+    margin-top: 4px;
   }
 }
 
 @media (max-width: 480px) {
   .app {
-    padding: 10px;
+    padding: 5px;
   }
   
   .container {
-    padding: 20px;
+    padding: 12px;
+    margin: 5px;
+  }
+
+  .header h1 {
+    font-size: 18px;
+  }
+
+  .tagline {
+    font-size: 12px;
   }
   
   .tabs {
     flex-direction: column;
+    gap: 8px;
   }
   
   .tab {
     text-align: center;
+    padding: 12px;
+    font-size: 14px;
   }
 
   .chat-container {
-    height: 50vh;
+    height: 75vh;
+    border-radius: 8px;
+  }
+
+  .chat-container.fullscreen {
+    height: 100vh;
+    border-radius: 0;
   }
 
   .messages-container {
-    padding: 16px;
+    padding: 12px;
+    gap: 10px;
   }
 
   .chat-input-container {
-    padding: 16px;
+    padding: 8px;
   }
 
   .message-content {
-    max-width: 90%;
+    max-width: 95%;
+  }
+
+  .input-wrapper {
+    gap: 3px;
+    padding: 4px 6px;
+    align-items: center;
+  }
+
+  .chat-input {
+    min-height: 32px;
+    max-height: 60px;
+    font-size: 16px;
+    padding: 6px 10px;
+    border-radius: 16px;
+  }
+
+  .upload-file-btn {
+    padding: 3px;
+    font-size: 9px;
+    min-width: 32px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+  }
+
+  .mic-button, .send-button {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+  }
+
+  .file-upload-section {
+    margin-bottom: 6px;
+  }
+
+  .chat-header {
+    padding: 10px;
+  }
+
+  .chat-header h2 {
+    font-size: 16px;
+  }
+
+  .chat-header p {
+    font-size: 11px;
+  }
+
+  .header-buttons {
+    gap: 6px;
+  }
+
+  .fullscreen-toggle {
+    width: 32px;
+    height: 32px;
+  }
+
+  .theme-toggle-switch {
+    padding: 2px;
+  }
+
+  .theme-option {
+    width: 24px;
+    height: 24px;
+  }
+
+  .message-text {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  .message-avatar {
+    width: 28px;
+    height: 28px;
+  }
+
+  .input-hint {
+    font-size: 9px;
+    padding: 0 6px 4px;
+    margin-top: 2px;
   }
 }

@@ -13,6 +13,7 @@ function App() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const fileInputRef = useRef(null);
   const recognitionRef = useRef(null);
+  const questionInputRef = useRef(null);
 
   // Theme management
   useEffect(() => {
@@ -166,6 +167,35 @@ function App() {
 
   const handleTemplateClick = (template) => {
     setQuestion(template);
+    // Focus on the input area after setting the question
+    setTimeout(() => {
+      questionInputRef.current?.focus();
+    }, 100);
+  };
+
+  const handleAskForClarification = () => {
+    const clarificationQuestion = `Please provide more details or clarification about: ${answer}`;
+    setQuestion(clarificationQuestion);
+    // Focus on the input area after setting the question
+    setTimeout(() => {
+      questionInputRef.current?.focus();
+    }, 100);
+  };
+
+  const handleBookmarkAnswer = () => {
+    // Store the current Q&A in localStorage
+    const bookmarks = JSON.parse(localStorage.getItem('bookmarks') || '[]');
+    const newBookmark = {
+      id: Date.now(),
+      question: question,
+      answer: answer,
+      timestamp: new Date().toISOString()
+    };
+    bookmarks.push(newBookmark);
+    localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
+    
+    // Show feedback to user
+    alert('Answer bookmarked successfully!');
   };
 
   const handleFileUpload = (event) => {
@@ -240,12 +270,6 @@ function App() {
             Topic Doubt
           </button>
           <button 
-            className={`tab ${activeTab === 'coding-practice' ? 'active' : ''}`}
-            onClick={() => setActiveTab('coding-practice')}
-          >
-            Coding Practice
-          </button>
-          <button 
             className={`tab ${activeTab === 'chat' ? 'active' : ''}`}
             onClick={() => setActiveTab('chat')}
           >
@@ -263,6 +287,7 @@ function App() {
               <h3>Ask a question or upload your summary below:</h3>
               <div className="input-container">
                 <textarea
+                  ref={questionInputRef}
                   value={question}
                   onChange={(e) => setQuestion(e.target.value)}
                   placeholder="Ask your medical coding question..."
@@ -326,11 +351,11 @@ function App() {
 
             {/* Action Links */}
             <div className="action-links">
-              <button className="action-link">
+              <button className="action-link" onClick={handleAskForClarification}>
                 <MessageSquare />
                 Ask for Clarification
               </button>
-              <button className="action-link">
+              <button className="action-link" onClick={handleBookmarkAnswer}>
                 <Bookmark />
                 Bookmark this Answer
               </button>

@@ -470,11 +470,10 @@ const Chat = ({ isDarkMode, toggleTheme }) => {
           ) : (
             <button
               onClick={handleUploadClick}
-              className={`upload-file-btn ${inputMessage.length > 50 ? 'compact' : ''}`}
+              className="upload-file-btn"
               title="Upload PDF file"
             >
               <FileText size={16} />
-              <span className="upload-text">Upload PDF</span>
             </button>
           )}
           
