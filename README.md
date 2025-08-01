@@ -1,116 +1,86 @@
 # WellMed AI - Medical Coding Assistant
 
-A comprehensive AI-powered application designed to help medical coding professionals with DRG analysis, CPT codes, and medical coding queries. Features a modern chat interface similar to ChatGPT for real-time conversations.
+A secure medical coding assistant with AI-powered responses for DRG codes, CPT codes, and medical coding guidelines.
 
-## Features
+## 🔒 Security Features
 
-### 🤖 Real-Time Chat Interface
-- **ChatGPT-like Experience**: Interactive chat interface with message history
-- **Streaming Responses**: Real-time message streaming for natural conversation flow
-- **Message Persistence**: Maintains conversation history during the session
-- **Responsive Design**: Works seamlessly on desktop and mobile devices
+- **Secure API Key Management**: API keys are stored server-side and never exposed to the client
+- **Backend Proxy**: All OpenAI API calls go through a secure backend server
+- **Environment Variables**: Sensitive data is protected using environment variables
 
-### 📚 Medical Coding Tools
-- **Topic Doubt**: Ask specific questions about medical coding concepts
-- **Coding Practice**: Practice with various medical coding scenarios
-- **File Upload**: Upload PDF case files for analysis
-- **Prompt Templates**: Quick access to common medical coding queries
+## 🚀 Quick Setup
 
-### 🎯 Key Capabilities
-- DRG (Diagnosis Related Group) analysis and explanations
-- CPT (Current Procedural Terminology) code lookups
-- Medical coding best practices and guidelines
-- Interactive learning with AI-powered responses
-- File-based case analysis
+### 1. Install Dependencies
 
-## Technology Stack
-
-- **Frontend**: React 19 with Vite
-- **UI Components**: Lucide React icons
-- **Styling**: Modern CSS with gradients and animations
-- **AI Integration**: Google Gemini API for intelligent responses
-- **HTTP Client**: Axios for API communication
-
-## Getting Started
-
-### Prerequisites
-- Node.js (v16 or higher)
-- npm or yarn package manager
-
-### Installation
-
-1. Clone the repository:
 ```bash
-git clone <repository-url>
-cd wellmed-ai
-```
-
-2. Install dependencies:
-```bash
+# Install frontend dependencies
 npm install
+
+# Install backend dependencies
+npm install express cors node-fetch dotenv concurrently
 ```
 
-3. Set up environment variables:
-Create a `.env` file in the root directory and add your Google Gemini API key:
-```
-VITE_GOOGLE_GEMINI_API_KEY=your_api_key_here
-```
+### 2. Environment Setup
 
-4. Start the development server:
+Create a `.env` file in the root directory:
+
 ```bash
-npm run dev
+OPENAI_API_KEY=your_openai_api_key_here
 ```
 
-5. Open your browser and navigate to `http://localhost:5173`
+### 3. Start the Application
 
-## Usage
+```bash
+# Start both frontend and backend
+npm run dev:full
 
-### Chat Interface
-1. Click on the "Chat" tab to access the real-time chat interface
-2. Type your medical coding questions in the input field
-3. Press Enter or click the send button to get AI responses
-4. The conversation history is maintained throughout your session
+# Or start them separately:
+# Backend: npm run server
+# Frontend: npm run dev
+```
 
-### Topic Doubt & Coding Practice
-1. Use the "Topic Doubt" or "Coding Practice" tabs for specific queries
-2. Upload PDF case files for detailed analysis
-3. Use the provided prompt templates for quick access to common questions
-4. Get detailed explanations with examples and best practices
+The application will be available at:
+- Frontend: http://localhost:5173
+- Backend: http://localhost:5000
 
-## API Configuration
-
-The application uses the Google Gemini API for AI responses. Make sure to:
-- Obtain a valid API key from Google AI Studio
-- Add the key to your `.env` file
-- Keep your API key secure and never commit it to version control
-
-## Project Structure
+## 📁 Project Structure
 
 ```
 wellmed-ai/
-├── src/
-│   ├── components/
-│   │   └── Chat.jsx          # Real-time chat component
-│   ├── App.jsx               # Main application component
-│   ├── App.css               # Application styles
-│   └── main.jsx              # Application entry point
-├── public/                   # Static assets
-├── .env                      # Environment variables
-└── package.json              # Project dependencies
+├── src/                 # React frontend
+│   ├── components/      # React components
+│   └── assets/         # Static assets
+├── server.js           # Backend server
+├── .env               # Environment variables (not in git)
+└── package.json       # Dependencies and scripts
 ```
 
-## Contributing
+## 🔧 Available Scripts
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+- `npm run dev` - Start frontend development server
+- `npm run server` - Start backend server
+- `npm run dev:full` - Start both frontend and backend
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
 
-## License
+## 🛡️ Security Notes
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+- ✅ API key is stored server-side only
+- ✅ No sensitive data in client-side code
+- ✅ CORS enabled for local development
+- ✅ Environment variables protected by .gitignore
 
-## Support
+## 🚨 Important
 
-For support and questions, please open an issue in the repository or contact the development team.
+Never commit your `.env` file to version control. It's already added to `.gitignore` to prevent accidental commits.
+
+## 📝 Features
+
+- Medical coding assistance
+- DRG code analysis
+- CPT code explanations
+- Voice input support
+- File upload (PDF)
+- Dark/Light theme
+- Responsive design
+- Fullscreen chat mode

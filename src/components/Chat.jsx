@@ -193,14 +193,12 @@ const Chat = ({ isDarkMode, toggleTheme }) => {
         prompt = `You are a helpful medical coding assistant. A PDF file "${uploadedFile.name}" has been uploaded for analysis. Please answer the following question in a conversational, helpful manner, considering the uploaded document: ${userMessage}`;
       }
 
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      const response = await fetch('http://localhost:5000/api/chat', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          model: 'gpt-4o-mini',
           messages: [
             {
               role: 'system',

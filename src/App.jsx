@@ -120,14 +120,12 @@ function App() {
     
     setIsLoading(true);
     try {
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      const response = await fetch('http://localhost:5000/api/chat', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          model: 'gpt-4o-mini',
           messages: [
             {
               role: 'system',
@@ -151,7 +149,7 @@ function App() {
         setAnswer('I apologize, but I encountered an issue processing your request. Please try again.');
       }
     } catch (error) {
-      console.error('Error calling Gemini API:', error);
+      console.error('Error calling API:', error);
       setAnswer('I apologize, but I encountered an error while processing your request. Please check your connection and try again.');
     } finally {
       setIsLoading(false);
