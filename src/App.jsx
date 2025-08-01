@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Brain, FileText, Mic, CheckCircle, Bookmark, MessageSquare, Sun, Moon } from 'lucide-react';
 import Chat from './components/Chat';
+import { API_BASE_URL } from './config';
 import './App.css';
 
 function App() {
@@ -120,7 +121,7 @@ function App() {
     
     setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/api/chat', {
+      const response = await fetch(`${API_BASE_URL}/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { User, Bot, Loader2, FileText, X, Check, X as XIcon, Sun, Moon } from 'lucide-react';
+import { API_BASE_URL } from '../config';
 import pencilIcon from '../assets/pencil.png';
 import sendIcon from '../assets/send.png';
 import voiceIcon from '../assets/voice-command.png';
@@ -193,7 +194,7 @@ const Chat = ({ isDarkMode, toggleTheme }) => {
         prompt = `You are a helpful medical coding assistant. A PDF file "${uploadedFile.name}" has been uploaded for analysis. Please answer the following question in a conversational, helpful manner, considering the uploaded document: ${userMessage}`;
       }
 
-      const response = await fetch('http://localhost:5000/api/chat', {
+      const response = await fetch(`${API_BASE_URL}/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
