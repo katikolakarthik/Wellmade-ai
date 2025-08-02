@@ -1,10 +1,16 @@
-const express = require('express');
-const cors = require('cors');
-const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
-const path = require('path');
-const multer = require('multer');
-const pdfParse = require('pdf-parse');
-require('dotenv').config();
+import express from 'express';
+import cors from 'cors';
+import fetch from 'node-fetch';
+import path from 'path';
+import multer from 'multer';
+import pdfParse from 'pdf-parse';
+import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -145,4 +151,4 @@ app.listen(PORT, () => {
   console.log(`📄 PDF Analysis endpoint: http://localhost:${PORT}/api/analyze-pdf`);
 });
 
-module.exports = app;
+export default app;

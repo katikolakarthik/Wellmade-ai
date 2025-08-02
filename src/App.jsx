@@ -71,9 +71,8 @@ function App() {
       });
   };
 
-  // Load saved data from localStorage on component mount
+  // Theme management
   useEffect(() => {
-    // Load theme
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
       setIsDarkMode(true);
@@ -82,40 +81,9 @@ function App() {
       setIsDarkMode(false);
       document.documentElement.classList.remove('dark');
     }
-
-    // Load topic doubt data
-    const savedTopicData = localStorage.getItem('wellmed_topic_data');
-    if (savedTopicData) {
-      try {
-        const parsedData = JSON.parse(savedTopicData);
-        if (parsedData.question) {
-          setQuestion(parsedData.question);
-        }
-        if (parsedData.answer) {
-          setAnswer(parsedData.answer);
-        }
-        if (parsedData.pdfContent) {
-          setPdfContent(parsedData.pdfContent);
-        }
-        if (parsedData.uploadedFileName) {
-          setUploadedFile({ name: parsedData.uploadedFileName });
-        }
-      } catch (error) {
-        console.error('Error loading topic data from localStorage:', error);
-      }
-    }
   }, []);
 
-  // Save topic doubt data to localStorage whenever it changes
-  useEffect(() => {
-    const topicData = {
-      question: question,
-      answer: answer,
-      pdfContent: pdfContent,
-      uploadedFileName: uploadedFile?.name || null
-    };
-    localStorage.setItem('wellmed_topic_data', JSON.stringify(topicData));
-  }, [question, answer, pdfContent, uploadedFile]);
+
 
   const toggleTheme = () => {
     const newTheme = !isDarkMode;
