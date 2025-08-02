@@ -7,43 +7,20 @@ import voiceIcon from '../assets/voice-command.png';
 import expandIcon from '../assets/expand.png';
 
 const Chat = ({ isDarkMode, toggleTheme }) => {
-  const [messages, setMessages] = useState(() => {
-    // Get saved messages from localStorage, or use default welcome message
-    const savedMessages = localStorage.getItem('chatMessages');
-    if (savedMessages) {
-      try {
-        const parsed = JSON.parse(savedMessages);
-        // Convert timestamp strings back to Date objects
-        return parsed.map(msg => ({
-          ...msg,
-          timestamp: new Date(msg.timestamp)
-        }));
-      } catch (error) {
-        console.error('Error parsing saved messages:', error);
-      }
-    }
-    
-    // Default welcome message
-    return [{
+  const [messages, setMessages] = useState([
+    {
       id: 1,
       type: 'assistant',
       content: 'Hello! I\'m your WellMed AI assistant. I can help you with medical coding, DRG analysis, CPT codes, and more. How can I assist you today?',
       timestamp: new Date()
-    }];
-  });
+    }
+  ]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [streamingMessage, setStreamingMessage] = useState('');
   const [isListening, setIsListening] = useState(false);
-  const [uploadedFile, setUploadedFile] = useState(() => {
-    // Get saved file info from localStorage
-    const savedFile = localStorage.getItem('uploadedFile');
-    return savedFile ? JSON.parse(savedFile) : null;
-  });
-  const [pdfContent, setPdfContent] = useState(() => {
-    // Get saved PDF content from localStorage
-    return localStorage.getItem('pdfContent') || '';
-  });
+  const [uploadedFile, setUploadedFile] = useState(null);
+  const [pdfContent, setPdfContent] = useState('');
   const [editingMessageId, setEditingMessageId] = useState(null);
   const [editText, setEditText] = useState('');
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -57,19 +34,54 @@ const Chat = ({ isDarkMode, toggleTheme }) => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // Save messages to localStorage whenever they change
-  const saveMessagesToStorage = (newMessages) => {
-    try {
-      localStorage.setItem('chatMessages', JSON.stringify(newMessages));
-    } catch (error) {
-      console.error('Error saving messages to localStorage:', error);
+  // Load chat data from localStorage on component mount
+  useEffect(() => {
+    const savedChatData = localStorage.getItem('wellmed_chat_data');
+    if (savedChatData) {
+      try {
+        const parsedData = JSON.parse(savedChatData);
+        if (parsedData.messages && Array.isArray(parsedData.messages)) {
+          // Convert timestamp strings back to Date objects
+          const messagesWithDates = parsedData.messages.map(msg => ({
+            ...msg,
+            timestamp: new Date(msg.timestamp)
+          }));
+          setMessages(messagesWithDates);
+        }
+        if (parsedData.pdfContent) {
+          setPdfContent(parsedData.pdfContent);
+        }
+        if (parsedData.uploadedFileName) {
+          // Create a mock file object for display purposes
+          setUploadedFile({ name: parsedData.uploadedFileName });
+        }
+      } catch (error) {
+        console.error('Error loading chat data from localStorage:', error);
+        // If there's an error, start with default welcome message
+        setMessages([
+          {
+            id: 1,
+            type: 'assistant',
+            content: 'Hello! I\'m your WellMed AI assistant. I can help you with medical coding, DRG analysis, CPT codes, and more. How can I assist you today?',
+            timestamp: new Date()
+          }
+        ]);
+      }
     }
-  };
+  }, []);
+
+  // Save chat data to localStorage whenever messages, pdfContent, or uploadedFile changes
+  useEffect(() => {
+    const chatData = {
+      messages: messages,
+      pdfContent: pdfContent,
+      uploadedFileName: uploadedFile?.name || null
+    };
+    localStorage.setItem('wellmed_chat_data', JSON.stringify(chatData));
+  }, [messages, pdfContent, uploadedFile]);
 
   useEffect(() => {
     scrollToBottom();
-    // Save messages to localStorage
-    saveMessagesToStorage(messages);
   }, [messages, streamingMessage]);
 
   // Initialize speech recognition
@@ -148,26 +160,18 @@ const Chat = ({ isDarkMode, toggleTheme }) => {
   const handleFileUpload = async (event) => {
     const file = event.target.files[0];
     if (file) {
-              if (file.type === 'application/pdf') {
-          // Save file info to localStorage (without the actual file object)
-          const fileInfo = {
-            name: file.name,
-            size: file.size,
-            type: file.type,
-            lastModified: file.lastModified
-          };
-          setUploadedFile(fileInfo);
-          localStorage.setItem('uploadedFile', JSON.stringify(fileInfo));
-          
-          // Add a message showing the uploaded file
-          const fileMessage = {
-            id: Date.now(),
-            type: 'user',
-            content: `📎 Uploaded PDF: ${file.name}`,
-            timestamp: new Date(),
-            isFileUpload: true
-          };
-          setMessages(prev => [...prev, fileMessage]);
+      if (file.type === 'application/pdf') {
+        setUploadedFile(file);
+        
+        // Add a message showing the uploaded file
+        const fileMessage = {
+          id: Date.now(),
+          type: 'user',
+          content: `📎 Uploaded PDF: ${file.name}`,
+          timestamp: new Date(),
+          isFileUpload: true
+        };
+        setMessages(prev => [...prev, fileMessage]);
 
         // Analyze the PDF
         try {
@@ -183,7 +187,6 @@ const Chat = ({ isDarkMode, toggleTheme }) => {
           
           if (data.success) {
             setPdfContent(data.text);
-            localStorage.setItem('pdfContent', data.text);
             
             // Add a message showing PDF analysis
             const analysisMessage = {
@@ -217,8 +220,6 @@ const Chat = ({ isDarkMode, toggleTheme }) => {
   const handleRemoveFile = () => {
     setUploadedFile(null);
     setPdfContent('');
-    localStorage.removeItem('uploadedFile');
-    localStorage.removeItem('pdfContent');
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -442,6 +443,22 @@ const Chat = ({ isDarkMode, toggleTheme }) => {
     setIsFullscreen(!isFullscreen);
   };
 
+  const clearChatHistory = () => {
+    if (window.confirm('Are you sure you want to clear the chat history? This action cannot be undone.')) {
+      setMessages([
+        {
+          id: 1,
+          type: 'assistant',
+          content: 'Hello! I\'m your WellMed AI assistant. I can help you with medical coding, DRG analysis, CPT codes, and more. How can I assist you today?',
+          timestamp: new Date()
+        }
+      ]);
+      setPdfContent('');
+      setUploadedFile(null);
+      localStorage.removeItem('wellmed_chat_data');
+    }
+  };
+
   return (
     <div className={`chat-container ${isFullscreen ? 'fullscreen' : ''}`}>
               <div className="chat-header">
@@ -451,6 +468,13 @@ const Chat = ({ isDarkMode, toggleTheme }) => {
               <p>Ask me anything about medical coding, DRG analysis, CPT codes, and more!</p>
             </div>
             <div className="header-buttons">
+              <button
+                onClick={clearChatHistory}
+                className="clear-chat-btn"
+                title="Clear Chat History"
+              >
+                <X size={16} />
+              </button>
               {isFullscreen && (
                 <div className="theme-toggle-switch">
                   <button

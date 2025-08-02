@@ -5,17 +5,9 @@ import { API_BASE_URL } from './config';
 import './App.css';
 
 function App() {
-  const [activeTab, setActiveTab] = useState(() => {
-    // Get the saved tab from localStorage, default to 'topic-doubt'
-    return localStorage.getItem('activeTab') || 'topic-doubt';
-  });
-  const [question, setQuestion] = useState(() => {
-    return localStorage.getItem('topicDoubtQuestion') || '';
-  });
-  const [answer, setAnswer] = useState(() => {
-    const savedAnswer = localStorage.getItem('topicDoubtAnswer');
-    return savedAnswer || '';
-  });
+  const [activeTab, setActiveTab] = useState('topic-doubt');
+  const [question, setQuestion] = useState('');
+  const [answer, setAnswer] = useState('DRG 291 represents Heart Failure & Shock with MCC.\n\nExample: A 65-year-old admitted with CHF and AKI undergoing treatment would be categorized under this DRG due to major complications.');
   const [isLoading, setIsLoading] = useState(false);
   const [uploadedFile, setUploadedFile] = useState(null);
   const [pdfContent, setPdfContent] = useState('');
@@ -79,8 +71,9 @@ function App() {
       });
   };
 
-  // Theme management
+  // Load saved data from localStorage on component mount
   useEffect(() => {
+    // Load theme
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
       setIsDarkMode(true);
@@ -89,7 +82,40 @@ function App() {
       setIsDarkMode(false);
       document.documentElement.classList.remove('dark');
     }
+
+    // Load topic doubt data
+    const savedTopicData = localStorage.getItem('wellmed_topic_data');
+    if (savedTopicData) {
+      try {
+        const parsedData = JSON.parse(savedTopicData);
+        if (parsedData.question) {
+          setQuestion(parsedData.question);
+        }
+        if (parsedData.answer) {
+          setAnswer(parsedData.answer);
+        }
+        if (parsedData.pdfContent) {
+          setPdfContent(parsedData.pdfContent);
+        }
+        if (parsedData.uploadedFileName) {
+          setUploadedFile({ name: parsedData.uploadedFileName });
+        }
+      } catch (error) {
+        console.error('Error loading topic data from localStorage:', error);
+      }
+    }
   }, []);
+
+  // Save topic doubt data to localStorage whenever it changes
+  useEffect(() => {
+    const topicData = {
+      question: question,
+      answer: answer,
+      pdfContent: pdfContent,
+      uploadedFileName: uploadedFile?.name || null
+    };
+    localStorage.setItem('wellmed_topic_data', JSON.stringify(topicData));
+  }, [question, answer, pdfContent, uploadedFile]);
 
   const toggleTheme = () => {
     const newTheme = !isDarkMode;
@@ -102,20 +128,6 @@ function App() {
       document.documentElement.classList.remove('dark');
       localStorage.setItem('theme', 'light');
     }
-  };
-
-  const handleTabChange = (tab) => {
-    setActiveTab(tab);
-    localStorage.setItem('activeTab', tab);
-  };
-
-  // Save question and answer to localStorage
-  const saveQuestionToStorage = (newQuestion) => {
-    localStorage.setItem('topicDoubtQuestion', newQuestion);
-  };
-
-  const saveAnswerToStorage = (newAnswer) => {
-    localStorage.setItem('topicDoubtAnswer', newAnswer);
   };
 
   // Initialize speech recognition
@@ -224,17 +236,12 @@ function App() {
       if (data.choices && data.choices[0] && data.choices[0].message) {
         const aiResponse = data.choices[0].message.content;
         setAnswer(aiResponse);
-        saveAnswerToStorage(aiResponse);
       } else {
-        const errorResponse = 'I apologize, but I encountered an issue processing your request. Please try again.';
-        setAnswer(errorResponse);
-        saveAnswerToStorage(errorResponse);
+        setAnswer('I apologize, but I encountered an issue processing your request. Please try again.');
       }
     } catch (error) {
       console.error('Error calling API:', error);
-      const errorResponse = 'I apologize, but I encountered an error while processing your request. Please check your connection and try again.';
-      setAnswer(errorResponse);
-      saveAnswerToStorage(errorResponse);
+      setAnswer('I apologize, but I encountered an error while processing your request. Please check your connection and try again.');
     } finally {
       setIsLoading(false);
     }
@@ -249,7 +256,6 @@ function App() {
 
   const handleTemplateClick = (template) => {
     setQuestion(template);
-    saveQuestionToStorage(template);
     // Focus on the input area after setting the question
     setTimeout(() => {
       questionInputRef.current?.focus();
@@ -259,7 +265,6 @@ function App() {
   const handleAskForClarification = () => {
     const clarificationQuestion = `Please provide more details or clarification about: ${answer}`;
     setQuestion(clarificationQuestion);
-    saveQuestionToStorage(clarificationQuestion);
     // Focus on the input area after setting the question
     setTimeout(() => {
       questionInputRef.current?.focus();
@@ -302,9 +307,7 @@ function App() {
           
           if (data.success) {
             setPdfContent(data.text);
-            const pdfQuestion = `Uploaded PDF: ${file.name}\n\nPlease analyze this medical case and provide coding recommendations based on the document content.`;
-            setQuestion(pdfQuestion);
-            saveQuestionToStorage(pdfQuestion);
+            setQuestion(`Uploaded PDF: ${file.name}\n\nPlease analyze this medical case and provide coding recommendations based on the document content.`);
           } else {
             throw new Error(data.error || 'Failed to analyze PDF');
           }
@@ -323,8 +326,7 @@ function App() {
       // If file is already uploaded, clear it
       setUploadedFile(null);
       setPdfContent('');
-      setQuestion('');
-      saveQuestionToStorage('');
+      setQuestion('What is DRG 291 with MCC? Explain with example');
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -368,13 +370,13 @@ function App() {
         <div className="tabs">
           <button 
             className={`tab ${activeTab === 'topic-doubt' ? 'active' : ''}`}
-            onClick={() => handleTabChange('topic-doubt')}
+            onClick={() => setActiveTab('topic-doubt')}
           >
             Topic Doubt
           </button>
           <button 
             className={`tab ${activeTab === 'chat' ? 'active' : ''}`}
-            onClick={() => handleTabChange('chat')}
+            onClick={() => setActiveTab('chat')}
           >
             Chat
           </button>
@@ -392,10 +394,7 @@ function App() {
                 <textarea
                   ref={questionInputRef}
                   value={question}
-                  onChange={(e) => {
-                    setQuestion(e.target.value);
-                    saveQuestionToStorage(e.target.value);
-                  }}
+                  onChange={(e) => setQuestion(e.target.value)}
                   placeholder="Ask your medical coding question..."
                   className="question-input"
                 />

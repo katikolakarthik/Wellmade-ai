@@ -178,6 +178,15 @@ body {
   border-color: rgba(255, 255, 255, 0.2);
 }
 
+.dark .clear-chat-btn {
+  background: #e53e3e;
+  color: white;
+}
+
+.dark .clear-chat-btn:hover {
+  background: #c53030;
+}
+
 .dark .chat-header h2 {
   color: #f7fafc;
 }
@@ -831,6 +840,25 @@ body {
 .fullscreen-toggle:hover {
   background: rgba(255, 255, 255, 0.2);
   border-color: rgba(255, 255, 255, 0.3);
+  transform: scale(1.05);
+}
+
+.clear-chat-btn {
+  background: #f56565;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 8px;
+}
+
+.clear-chat-btn:hover {
+  background: #e53e3e;
   transform: scale(1.05);
 }
 
