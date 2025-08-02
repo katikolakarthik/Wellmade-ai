@@ -14,7 +14,7 @@ function App() {
   });
   const [answer, setAnswer] = useState(() => {
     const savedAnswer = localStorage.getItem('topicDoubtAnswer');
-    return savedAnswer || 'DRG 291 represents Heart Failure & Shock with MCC.\n\nExample: A 65-year-old admitted with CHF and AKI undergoing treatment would be categorized under this DRG due to major complications.';
+    return savedAnswer || '';
   });
   const [isLoading, setIsLoading] = useState(false);
   const [uploadedFile, setUploadedFile] = useState(null);
@@ -323,9 +323,8 @@ function App() {
       // If file is already uploaded, clear it
       setUploadedFile(null);
       setPdfContent('');
-      const defaultQuestion = 'What is DRG 291 with MCC? Explain with example';
-      setQuestion(defaultQuestion);
-      saveQuestionToStorage(defaultQuestion);
+      setQuestion('');
+      saveQuestionToStorage('');
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
