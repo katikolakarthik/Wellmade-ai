@@ -419,43 +419,7 @@ function App() {
                 {renderMarkdownContent(answer)}
               </div>
             </div>
-
-            {/* Tip Section */}
-            <div className="tip-section">
-              <div className="tip-header">
-                <CheckCircle className="check-icon" />
-                <h4>Tip:</h4>
-              </div>
-              <p>MCC increases reimbursement; watch for renal codes when coding heart failure cases.</p>
-            </div>
-
-            {/* Action Links */}
-            <div className="action-links">
-              <button className="action-link" onClick={handleAskForClarification}>
-                <MessageSquare />
-                Ask for Clarification
-              </button>
-              <button className="action-link" onClick={handleBookmarkAnswer}>
-                <Bookmark />
-                Bookmark this Answer
-              </button>
-            </div>
-
-            {/* Prompt Templates */}
-            <div className="prompt-templates">
-              <h4>Prompt Templates:</h4>
-              <div className="template-grid">
-                {promptTemplates.map((template, index) => (
-                  <button
-                    key={index}
-                    className="template-btn"
-                    onClick={() => handleTemplateClick(template)}
-                  >
-                    {template}
-                  </button>
-                ))}
-              </div>
-            </div>
+        
           </>
         )}
       </div>
