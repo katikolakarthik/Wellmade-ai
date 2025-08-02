@@ -5,7 +5,11 @@ import { API_BASE_URL } from './config';
 import './App.css';
 
 function App() {
-  const [activeTab, setActiveTab] = useState('topic-doubt');
+  const [activeTab, setActiveTab] = useState(() => {
+    // Load active tab from localStorage, default to 'topic-doubt'
+    const savedTab = localStorage.getItem('wellmed_active_tab');
+    return savedTab || 'topic-doubt';
+  });
   const [question, setQuestion] = useState('');
   const [answer, setAnswer] = useState('DRG 291 represents Heart Failure & Shock with MCC.\n\nExample: A 65-year-old admitted with CHF and AKI undergoing treatment would be categorized under this DRG due to major complications.');
   const [isLoading, setIsLoading] = useState(false);
@@ -84,6 +88,11 @@ function App() {
   }, []);
 
 
+
+  // Save active tab to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('wellmed_active_tab', activeTab);
+  }, [activeTab]);
 
   const toggleTheme = () => {
     const newTheme = !isDarkMode;
