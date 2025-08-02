@@ -928,6 +928,111 @@ body {
   margin-bottom: 0;
 }
 
+/* Markdown Styles for Chat Messages */
+.markdown-h1 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #2d3748;
+  margin: 16px 0 8px 0;
+  padding-bottom: 4px;
+  border-bottom: 2px solid #667eea;
+}
+
+.markdown-h2 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2d3748;
+  margin: 12px 0 6px 0;
+  padding: 8px 0;
+  background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+  border-radius: 6px;
+  padding-left: 12px;
+}
+
+.markdown-h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #4a5568;
+  margin: 10px 0 4px 0;
+  padding-left: 8px;
+  border-left: 3px solid #667eea;
+}
+
+.markdown-p {
+  margin: 6px 0;
+  line-height: 1.5;
+  color: #2d3748;
+}
+
+.markdown-p.checkmark {
+  color: #38a169;
+  font-weight: 500;
+  background: linear-gradient(135deg, #f0fff4 0%, #e6fffa 100%);
+  padding: 8px 12px;
+  border-radius: 8px;
+  border-left: 4px solid #38a169;
+  margin: 8px 0;
+}
+
+.markdown-li {
+  margin: 4px 0;
+  padding-left: 16px;
+  position: relative;
+  line-height: 1.5;
+  color: #2d3748;
+}
+
+.markdown-li::before {
+  content: "•";
+  color: #667eea;
+  font-weight: bold;
+  position: absolute;
+  left: 0;
+}
+
+.markdown-p strong {
+  font-weight: 600;
+  color: #2d3748;
+}
+
+/* Dark mode markdown styles */
+.dark .markdown-h1 {
+  color: #f7fafc;
+  border-bottom-color: #667eea;
+}
+
+.dark .markdown-h2 {
+  color: #f7fafc;
+  background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+}
+
+.dark .markdown-h3 {
+  color: #e2e8f0;
+  border-left-color: #667eea;
+}
+
+.dark .markdown-p {
+  color: #e2e8f0;
+}
+
+.dark .markdown-p.checkmark {
+  color: #68d391;
+  background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+  border-left-color: #68d391;
+}
+
+.dark .markdown-li {
+  color: #e2e8f0;
+}
+
+.dark .markdown-li::before {
+  color: #667eea;
+}
+
+.dark .markdown-p strong {
+  color: #f7fafc;
+}
+
 .message-time {
   font-size: 11px;
   color: #a0aec0;
