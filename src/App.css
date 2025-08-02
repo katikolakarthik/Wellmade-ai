@@ -1215,6 +1215,12 @@ body {
   flex: 1;
 }
 
+.file-info {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.8);
+  margin-left: 4px;
+}
+
 .remove-file-btn {
   display: flex;
   align-items: center;

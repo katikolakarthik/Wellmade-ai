@@ -10,6 +10,8 @@ function App() {
   const [answer, setAnswer] = useState('DRG 291 represents Heart Failure & Shock with MCC.\n\nExample: A 65-year-old admitted with CHF and AKI undergoing treatment would be categorized under this DRG due to major complications.');
   const [isLoading, setIsLoading] = useState(false);
   const [uploadedFile, setUploadedFile] = useState(null);
+  const [pdfContext, setPdfContext] = useState(null);
+  const [isUploadingPdf, setIsUploadingPdf] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const fileInputRef = useRef(null);
@@ -191,6 +193,7 @@ function App() {
               content: question
             }
           ],
+          pdfContext: pdfContext, // Send PDF context if available
           max_tokens: 1000,
           temperature: 0.7
         })
@@ -251,19 +254,44 @@ function App() {
     alert('Answer bookmarked successfully!');
   };
 
-  const handleFileUpload = (event) => {
+  const handleFileUpload = async (event) => {
     const file = event.target.files[0];
     if (file) {
       if (file.type === 'application/pdf') {
+        setIsUploadingPdf(true);
         setUploadedFile(file);
-        // Read the PDF and extract text (simplified version)
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          // For now, we'll just show the filename
-          // In a real implementation, you'd use a PDF parsing library
-          setQuestion(`Uploaded PDF: ${file.name}\n\nPlease analyze this medical case and provide coding recommendations.`);
-        };
-        reader.readAsArrayBuffer(file);
+        
+        try {
+          // Create FormData to send the file
+          const formData = new FormData();
+          formData.append('pdf', file);
+
+          // Upload and process the PDF
+          const response = await fetch(`${API_BASE_URL}/upload-pdf`, {
+            method: 'POST',
+            body: formData
+          });
+
+          const data = await response.json();
+          
+          if (data.success) {
+            setPdfContext({
+              filename: data.filename,
+              text: data.text,
+              pageCount: data.pageCount
+            });
+            setQuestion(`Uploaded PDF: ${file.name}\n\nPlease analyze this medical case and provide coding recommendations based on the document content.`);
+            alert(`PDF "${file.name}" processed successfully! (${data.pageCount} pages, ${data.text.length} characters extracted)`);
+          } else {
+            throw new Error(data.error || 'Failed to process PDF');
+          }
+        } catch (error) {
+          console.error('PDF upload error:', error);
+          alert(`Failed to process PDF: ${error.message}`);
+          setUploadedFile(null);
+        } finally {
+          setIsUploadingPdf(false);
+        }
       } else {
         alert('Please upload a PDF file.');
       }
@@ -274,6 +302,7 @@ function App() {
     if (uploadedFile) {
       // If file is already uploaded, clear it
       setUploadedFile(null);
+      setPdfContext(null);
       setQuestion('What is DRG 291 with MCC? Explain with example');
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
@@ -357,9 +386,19 @@ function App() {
                   <button 
                     className={`upload-btn ${uploadedFile ? 'uploaded' : ''}`} 
                     onClick={handleUploadClick}
+                    disabled={isLoading || isUploadingPdf}
                   >
-                    <FileText />
-                    {uploadedFile ? `Remove PDF: ${uploadedFile.name}` : 'Upload Case PDF'}
+                    {isUploadingPdf ? (
+                      <>
+                        <div className="animate-spin" style={{ width: '16px', height: '16px', border: '2px solid currentColor', borderTop: '2px solid transparent', borderRadius: '50%' }} />
+                        Processing PDF...
+                      </>
+                    ) : (
+                      <>
+                        <FileText />
+                        {uploadedFile ? `Remove PDF: ${uploadedFile.name}${pdfContext ? ` (${pdfContext.pageCount} pages)` : ''}` : 'Upload Case PDF'}
+                      </>
+                    )}
                   </button>
                   <button 
                     className={`speak-btn ${isListening ? 'listening' : ''}`}

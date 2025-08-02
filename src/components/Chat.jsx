@@ -20,6 +20,8 @@ const Chat = ({ isDarkMode, toggleTheme }) => {
   const [streamingMessage, setStreamingMessage] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [uploadedFile, setUploadedFile] = useState(null);
+  const [pdfContext, setPdfContext] = useState(null);
+  const [isUploadingPdf, setIsUploadingPdf] = useState(false);
   const [editingMessageId, setEditingMessageId] = useState(null);
   const [editText, setEditText] = useState('');
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -110,20 +112,61 @@ const Chat = ({ isDarkMode, toggleTheme }) => {
     }
   };
 
-  const handleFileUpload = (event) => {
+  const handleFileUpload = async (event) => {
     const file = event.target.files[0];
     if (file) {
       if (file.type === 'application/pdf') {
+        setIsUploadingPdf(true);
         setUploadedFile(file);
-        // Add a message showing the uploaded file
-        const fileMessage = {
-          id: Date.now(),
-          type: 'user',
-          content: `📎 Uploaded PDF: ${file.name}`,
-          timestamp: new Date(),
-          isFileUpload: true
-        };
-        setMessages(prev => [...prev, fileMessage]);
+        
+        try {
+          // Create FormData to send the file
+          const formData = new FormData();
+          formData.append('pdf', file);
+
+          // Upload and process the PDF
+          const response = await fetch(`${API_BASE_URL}/upload-pdf`, {
+            method: 'POST',
+            body: formData
+          });
+
+          const data = await response.json();
+          
+          if (data.success) {
+            setPdfContext({
+              filename: data.filename,
+              text: data.text,
+              pageCount: data.pageCount
+            });
+            
+            // Add a message showing the uploaded file with processing info
+            const fileMessage = {
+              id: Date.now(),
+              type: 'user',
+              content: `📎 Uploaded PDF: ${file.name} (${data.pageCount} pages, ${data.text.length} characters extracted)`,
+              timestamp: new Date(),
+              isFileUpload: true
+            };
+            setMessages(prev => [...prev, fileMessage]);
+            
+            // Add an assistant message confirming PDF processing
+            const assistantMessage = {
+              id: Date.now() + 1,
+              type: 'assistant',
+              content: `✅ PDF "${file.name}" has been successfully processed and analyzed. I can now answer questions based on the content of this document. What would you like to know about it?`,
+              timestamp: new Date()
+            };
+            setMessages(prev => [...prev, assistantMessage]);
+          } else {
+            throw new Error(data.error || 'Failed to process PDF');
+          }
+        } catch (error) {
+          console.error('PDF upload error:', error);
+          alert(`Failed to process PDF: ${error.message}`);
+          setUploadedFile(null);
+        } finally {
+          setIsUploadingPdf(false);
+        }
       } else {
         alert('Please upload a PDF file.');
       }
@@ -132,9 +175,19 @@ const Chat = ({ isDarkMode, toggleTheme }) => {
 
   const handleRemoveFile = () => {
     setUploadedFile(null);
+    setPdfContext(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+    
+    // Add a message indicating PDF removal
+    const removeMessage = {
+      id: Date.now(),
+      type: 'assistant',
+      content: '📄 PDF document has been removed. I will no longer reference it in my responses.',
+      timestamp: new Date()
+    };
+    setMessages(prev => [...prev, removeMessage]);
   };
 
   const handleUploadClick = () => {
@@ -187,13 +240,6 @@ const Chat = ({ isDarkMode, toggleTheme }) => {
     setStreamingMessage('');
 
     try {
-      // Prepare the prompt with file context if available
-      let prompt = `You are a helpful medical coding assistant. Answer the following question in a conversational, helpful manner: ${userMessage}`;
-      
-      if (uploadedFile) {
-        prompt = `You are a helpful medical coding assistant. A PDF file "${uploadedFile.name}" has been uploaded for analysis. Please answer the following question in a conversational, helpful manner, considering the uploaded document: ${userMessage}`;
-      }
-
       const response = await fetch(`${API_BASE_URL}/chat`, {
         method: 'POST',
         headers: {
@@ -210,6 +256,7 @@ const Chat = ({ isDarkMode, toggleTheme }) => {
               content: userMessage
             }
           ],
+          pdfContext: pdfContext, // Send PDF context if available
           max_tokens: 1000,
           temperature: 0.7
         })
@@ -509,10 +556,16 @@ const Chat = ({ isDarkMode, toggleTheme }) => {
             <div className="uploaded-file">
               <FileText size={16} />
               <span className="file-name">{uploadedFile.name}</span>
+              {pdfContext && (
+                <span className="file-info">
+                  ({pdfContext.pageCount} pages)
+                </span>
+              )}
               <button
                 onClick={handleRemoveFile}
                 className="remove-file-btn"
                 title="Remove file"
+                disabled={isUploadingPdf}
               >
                 <X size={14} />
               </button>
@@ -522,8 +575,13 @@ const Chat = ({ isDarkMode, toggleTheme }) => {
               onClick={handleUploadClick}
               className="upload-file-btn"
               title="Upload PDF file"
+              disabled={isLoading || isUploadingPdf}
             >
-              <FileText size={16} />
+              {isUploadingPdf ? (
+                <Loader2 size={16} className="animate-spin" />
+              ) : (
+                <FileText size={16} />
+              )}
             </button>
           )}
           
