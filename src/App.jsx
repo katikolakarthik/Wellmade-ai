@@ -130,7 +130,7 @@ function App() {
           messages: [
             {
               role: 'system',
-              content: 'You are a helpful medical coding assistant. Provide clear, accurate answers about DRG codes, CPT codes, medical coding guidelines, and related topics.'
+              content: 'same like gpt'
             },
             {
               role: 'user',
