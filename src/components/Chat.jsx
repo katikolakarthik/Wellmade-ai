@@ -7,20 +7,43 @@ import voiceIcon from '../assets/voice-command.png';
 import expandIcon from '../assets/expand.png';
 
 const Chat = ({ isDarkMode, toggleTheme }) => {
-  const [messages, setMessages] = useState([
-    {
+  const [messages, setMessages] = useState(() => {
+    // Get saved messages from localStorage, or use default welcome message
+    const savedMessages = localStorage.getItem('chatMessages');
+    if (savedMessages) {
+      try {
+        const parsed = JSON.parse(savedMessages);
+        // Convert timestamp strings back to Date objects
+        return parsed.map(msg => ({
+          ...msg,
+          timestamp: new Date(msg.timestamp)
+        }));
+      } catch (error) {
+        console.error('Error parsing saved messages:', error);
+      }
+    }
+    
+    // Default welcome message
+    return [{
       id: 1,
       type: 'assistant',
       content: 'Hello! I\'m your WellMed AI assistant. I can help you with medical coding, DRG analysis, CPT codes, and more. How can I assist you today?',
       timestamp: new Date()
-    }
-  ]);
+    }];
+  });
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [streamingMessage, setStreamingMessage] = useState('');
   const [isListening, setIsListening] = useState(false);
-  const [uploadedFile, setUploadedFile] = useState(null);
-  const [pdfContent, setPdfContent] = useState('');
+  const [uploadedFile, setUploadedFile] = useState(() => {
+    // Get saved file info from localStorage
+    const savedFile = localStorage.getItem('uploadedFile');
+    return savedFile ? JSON.parse(savedFile) : null;
+  });
+  const [pdfContent, setPdfContent] = useState(() => {
+    // Get saved PDF content from localStorage
+    return localStorage.getItem('pdfContent') || '';
+  });
   const [editingMessageId, setEditingMessageId] = useState(null);
   const [editText, setEditText] = useState('');
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -34,8 +57,19 @@ const Chat = ({ isDarkMode, toggleTheme }) => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // Save messages to localStorage whenever they change
+  const saveMessagesToStorage = (newMessages) => {
+    try {
+      localStorage.setItem('chatMessages', JSON.stringify(newMessages));
+    } catch (error) {
+      console.error('Error saving messages to localStorage:', error);
+    }
+  };
+
   useEffect(() => {
     scrollToBottom();
+    // Save messages to localStorage
+    saveMessagesToStorage(messages);
   }, [messages, streamingMessage]);
 
   // Initialize speech recognition
@@ -114,18 +148,26 @@ const Chat = ({ isDarkMode, toggleTheme }) => {
   const handleFileUpload = async (event) => {
     const file = event.target.files[0];
     if (file) {
-      if (file.type === 'application/pdf') {
-        setUploadedFile(file);
-        
-        // Add a message showing the uploaded file
-        const fileMessage = {
-          id: Date.now(),
-          type: 'user',
-          content: `📎 Uploaded PDF: ${file.name}`,
-          timestamp: new Date(),
-          isFileUpload: true
-        };
-        setMessages(prev => [...prev, fileMessage]);
+              if (file.type === 'application/pdf') {
+          // Save file info to localStorage (without the actual file object)
+          const fileInfo = {
+            name: file.name,
+            size: file.size,
+            type: file.type,
+            lastModified: file.lastModified
+          };
+          setUploadedFile(fileInfo);
+          localStorage.setItem('uploadedFile', JSON.stringify(fileInfo));
+          
+          // Add a message showing the uploaded file
+          const fileMessage = {
+            id: Date.now(),
+            type: 'user',
+            content: `📎 Uploaded PDF: ${file.name}`,
+            timestamp: new Date(),
+            isFileUpload: true
+          };
+          setMessages(prev => [...prev, fileMessage]);
 
         // Analyze the PDF
         try {
@@ -141,6 +183,7 @@ const Chat = ({ isDarkMode, toggleTheme }) => {
           
           if (data.success) {
             setPdfContent(data.text);
+            localStorage.setItem('pdfContent', data.text);
             
             // Add a message showing PDF analysis
             const analysisMessage = {
@@ -174,6 +217,8 @@ const Chat = ({ isDarkMode, toggleTheme }) => {
   const handleRemoveFile = () => {
     setUploadedFile(null);
     setPdfContent('');
+    localStorage.removeItem('uploadedFile');
+    localStorage.removeItem('pdfContent');
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
