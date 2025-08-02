@@ -130,7 +130,7 @@ function App() {
           messages: [
             {
               role: 'system',
-              content: 'same like gpt'
+              content: question
             },
             {
               role: 'user',
