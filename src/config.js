@@ -4,7 +4,7 @@ const config = {
     apiUrl: 'https://newww-peach.vercel.app/api'
   },
   production: {
-    apiUrl: '/api' // Relative URL for production (same domain)
+    apiUrl: 'https://newww-peach.vercel.app/api' // Relative URL for production (same domain)
   }
 };
 
