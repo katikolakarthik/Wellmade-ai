@@ -110,8 +110,8 @@ body {
 }
 
 .dark .answer-section {
-  background: #2d3748;
-  border-left-color: #667eea;
+  background: transparent;
+  border-left-color: transparent;
 }
 
 .dark .answer-header h3 {
@@ -561,22 +561,23 @@ body {
 /* Answer Section */
 .answer-section {
   margin-bottom: 24px;
-  padding: 24px;
-  background: #f8fafc;
-  border-radius: 16px;
-  border-left: 4px solid #667eea;
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  border-left: none;
 }
 
 .answer-header {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
+  padding: 0;
 }
 
 .answer-header h3 {
   color: #2d3748;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   margin: 0;
 }
@@ -585,10 +586,11 @@ body {
   color: #4a5568;
   line-height: 1.6;
   font-size: 16px;
+  padding: 0;
 }
 
 .answer-content p {
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .answer-content p:last-child {

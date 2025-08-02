@@ -16,6 +16,60 @@ function App() {
   const recognitionRef = useRef(null);
   const questionInputRef = useRef(null);
 
+  // Markdown rendering function for structured responses
+  const renderMarkdownContent = (content) => {
+    // Simple markdown rendering for topic doubt answers
+    return content
+      .split('\n')
+      .map((line, index) => {
+        // Handle headers
+        if (line.startsWith('### ')) {
+          return <h3 key={index} className="markdown-h3">{line.replace('### ', '')}</h3>;
+        }
+        if (line.startsWith('## ')) {
+          return <h2 key={index} className="markdown-h2">{line.replace('## ', '')}</h2>;
+        }
+        if (line.startsWith('# ')) {
+          return <h1 key={index} className="markdown-h1">{line.replace('# ', '')}</h1>;
+        }
+        
+        // Handle bullet points
+        if (line.startsWith('* ') || line.startsWith('- ')) {
+          return <li key={index} className="markdown-li">{line.replace(/^[\*\-]\s/, '')}</li>;
+        }
+        
+        // Handle numbered lists
+        if (/^\d+\.\s/.test(line)) {
+          return <li key={index} className="markdown-li">{line.replace(/^\d+\.\s/, '')}</li>;
+        }
+        
+        // Handle bold text
+        if (line.includes('**')) {
+          const parts = line.split('**');
+          return (
+            <p key={index} className="markdown-p">
+              {parts.map((part, i) => 
+                i % 2 === 1 ? <strong key={i}>{part}</strong> : part
+              )}
+            </p>
+          );
+        }
+        
+        // Handle checkmarks and special formatting
+        if (line.includes('✅') || line.includes('✓')) {
+          return <p key={index} className="markdown-p checkmark">{line}</p>;
+        }
+        
+        // Handle empty lines
+        if (line.trim() === '') {
+          return <br key={index} />;
+        }
+        
+        // Regular paragraph
+        return <p key={index} className="markdown-p">{line}</p>;
+      });
+  };
+
   // Theme management
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
@@ -130,7 +184,7 @@ function App() {
           messages: [
             {
               role: 'system',
-              content: question
+              content: 'You are a helpful medical coding assistant. Provide clear, accurate answers about DRG codes, CPT codes, medical coding guidelines, and related topics. Format your responses in a structured way similar to ChatGPT with clear sections, bullet points, and explanations. Use markdown formatting for better readability.'
             },
             {
               role: 'user',
@@ -333,9 +387,7 @@ function App() {
                 <h3>Answer:</h3>
               </div>
               <div className="answer-content">
-                {answer.split('\n').map((line, index) => (
-                  <p key={index}>{line}</p>
-                ))}
+                {renderMarkdownContent(answer)}
               </div>
             </div>
 
