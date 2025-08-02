@@ -11,7 +11,7 @@ function App() {
     return savedTab || 'topic-doubt';
   });
   const [question, setQuestion] = useState('');
-  const [answer, setAnswer] = useState('DRG 291 represents Heart Failure & Shock with MCC.\n\nExample: A 65-year-old admitted with CHF and AKI undergoing treatment would be categorized under this DRG due to major complications.');
+  const [answer, setAnswer] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [uploadedFile, setUploadedFile] = useState(null);
   const [pdfContent, setPdfContent] = useState('');
