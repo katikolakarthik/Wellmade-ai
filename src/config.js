@@ -1,7 +1,7 @@
 // Configuration for different environments
 const config = {
   development: {
-    apiUrl: 'http://localhost:5000/api'
+    apiUrl: 'https://newww-peach.vercel.app//api'
   },
   production: {
     apiUrl: '/api' // Relative URL for production (same domain)
