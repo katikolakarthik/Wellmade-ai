@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Brain, FileText, Mic, CheckCircle, Bookmark, MessageSquare, Sun, Moon } from 'lucide-react';
+import { Brain, FileText, Mic, CheckCircle, Bookmark, MessageSquare, Sun, Moon, Square } from 'lucide-react';
 import Chat from './components/Chat';
 import { API_BASE_URL } from './config';
 import './App.css';
@@ -17,6 +17,7 @@ function App() {
   const [pdfContent, setPdfContent] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [abortController, setAbortController] = useState(null);
   const fileInputRef = useRef(null);
   const recognitionRef = useRef(null);
   const questionInputRef = useRef(null);
@@ -40,29 +41,14 @@ function App() {
         
         // Handle bullet points
         if (line.startsWith('* ') || line.startsWith('- ')) {
-          return <li key={index} className="markdown-li">{line.replace(/^[\*\-]\s/, '')}</li>;
+          const content = line.replace(/^[\*\-]\s/, '');
+          return <li key={index} className="markdown-li">{parseInlineFormatting(content)}</li>;
         }
         
         // Handle numbered lists
         if (/^\d+\.\s/.test(line)) {
-          return <li key={index} className="markdown-li">{line.replace(/^\d+\.\s/, '')}</li>;
-        }
-        
-        // Handle bold text
-        if (line.includes('**')) {
-          const parts = line.split('**');
-          return (
-            <p key={index} className="markdown-p">
-              {parts.map((part, i) => 
-                i % 2 === 1 ? <strong key={i}>{part}</strong> : part
-              )}
-            </p>
-          );
-        }
-        
-        // Handle checkmarks and special formatting
-        if (line.includes('✅') || line.includes('✓')) {
-          return <p key={index} className="markdown-p checkmark">{line}</p>;
+          const content = line.replace(/^\d+\.\s/, '');
+          return <li key={index} className="markdown-li">{parseInlineFormatting(content)}</li>;
         }
         
         // Handle empty lines
@@ -70,9 +56,49 @@ function App() {
           return <br key={index} />;
         }
         
-        // Regular paragraph
-        return <p key={index} className="markdown-p">{line}</p>;
+        // Regular paragraph with inline formatting
+        return <p key={index} className="markdown-p">{parseInlineFormatting(line)}</p>;
       });
+  };
+
+  // Helper function to parse inline formatting (bold, italic, code)
+  const parseInlineFormatting = (text) => {
+    if (!text) return text;
+    
+    // Handle inline code with backticks
+    const codeRegex = /`([^`]+)`/g;
+    let result = text.replace(codeRegex, (match, code) => {
+      return `<code class="inline-code">${code}</code>`;
+    });
+    
+    // Handle bold text with **
+    const boldRegex = /\*\*([^*]+)\*\*/g;
+    result = result.replace(boldRegex, (match, boldText) => {
+      return `<strong>${boldText}</strong>`;
+    });
+    
+    // Handle italic text with *
+    const italicRegex = /\*([^*]+)\*/g;
+    result = result.replace(italicRegex, (match, italicText) => {
+      return `<em>${italicText}</em>`;
+    });
+    
+    // Convert to JSX elements
+    return result.split(/(<[^>]+>[^<]*<\/[^>]+>)/).map((part, i) => {
+      if (part.startsWith('<code class="inline-code">')) {
+        const code = part.match(/<code class="inline-code">([^<]+)<\/code>/);
+        return <code key={i} className="inline-code">{code[1]}</code>;
+      }
+      if (part.startsWith('<strong>')) {
+        const bold = part.match(/<strong>([^<]+)<\/strong>/);
+        return <strong key={i}>{bold[1]}</strong>;
+      }
+      if (part.startsWith('<em>')) {
+        const italic = part.match(/<em>([^<]+)<\/em>/);
+        return <em key={i}>{italic[1]}</em>;
+      }
+      return part;
+    });
   };
 
   // Theme management
@@ -185,7 +211,11 @@ function App() {
   const handleAskAI = async () => {
     if (!question.trim()) return;
     
+    // Create new AbortController for this request
+    const controller = new AbortController();
+    setAbortController(controller);
     setIsLoading(true);
+    
     try {
       const response = await fetch(`${API_BASE_URL}/chat`, {
         method: 'POST',
@@ -206,7 +236,8 @@ function App() {
           pdfContent: pdfContent, // Include PDF content if available
           max_tokens: 1000,
           temperature: 0.7
-        })
+        }),
+        signal: controller.signal
       });
 
       const data = await response.json();
@@ -217,10 +248,16 @@ function App() {
         setAnswer('I apologize, but I encountered an issue processing your request. Please try again.');
       }
     } catch (error) {
-      console.error('Error calling API:', error);
-      setAnswer('I apologize, but I encountered an error while processing your request. Please check your connection and try again.');
+      if (error.name === 'AbortError') {
+        console.log('Request was aborted');
+        setAnswer('Response generation was stopped.');
+      } else {
+        console.error('Error calling API:', error);
+        setAnswer('I apologize, but I encountered an error while processing your request. Please check your connection and try again.');
+      }
     } finally {
       setIsLoading(false);
+      setAbortController(null);
     }
   };
 
@@ -246,6 +283,14 @@ function App() {
     setTimeout(() => {
       questionInputRef.current?.focus();
     }, 100);
+  };
+
+  const handleStopGeneration = () => {
+    if (abortController) {
+      abortController.abort();
+      setAbortController(null);
+      setIsLoading(false);
+    }
   };
 
   const handleBookmarkAnswer = () => {
@@ -405,6 +450,16 @@ function App() {
                   >
                     {isLoading ? 'Processing...' : 'Ask AI'}
                   </button>
+                  {isLoading && (
+                    <button 
+                      className="stop-btn"
+                      onClick={handleStopGeneration}
+                      title="Stop generation"
+                    >
+                      <Square size={16} />
+                      Stop
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

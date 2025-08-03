@@ -1,16 +1,16 @@
 # WellMed AI - Medical Coding Assistant
 
-A secure medical coding assistant with AI-powered responses for DRG codes, CPT codes, and medical coding guidelines.
+A secure medical coding assistant with AI-powered responses for **DRG codes**, **CPT codes**, and medical coding guidelines.
 
-## 🔒 Security Features
+## **Security Features**
 
 - **Secure API Key Management**: API keys are stored server-side and never exposed to the client
 - **Backend Proxy**: All OpenAI API calls go through a secure backend server
 - **Environment Variables**: Sensitive data is protected using environment variables
 
-## 🚀 Quick Setup
+## **Quick Setup**
 
-### 1. Install Dependencies
+### **1. Install Dependencies**
 
 ```bash
 # Install frontend dependencies
@@ -20,7 +20,7 @@ npm install
 npm install express cors node-fetch dotenv concurrently
 ```
 
-### 2. Environment Setup
+### **2. Environment Setup**
 
 Create a `.env` file in the root directory:
 
@@ -28,7 +28,7 @@ Create a `.env` file in the root directory:
 OPENAI_API_KEY=your_openai_api_key_here
 ```
 
-### 3. Start the Application
+### **3. Start the Application**
 
 ```bash
 # Start both frontend and backend
@@ -40,10 +40,10 @@ npm run dev:full
 ```
 
 The application will be available at:
-- Frontend: http://localhost:5173
-- Backend: http://localhost:5000
+- Frontend: `http://localhost:5173`
+- Backend: `http://localhost:5000`
 
-## 📁 Project Structure
+## **Project Structure**
 
 ```
 wellmed-ai/
@@ -55,7 +55,7 @@ wellmed-ai/
 └── package.json       # Dependencies and scripts
 ```
 
-## 🔧 Available Scripts
+## **Available Scripts**
 
 - `npm run dev` - Start frontend development server
 - `npm run server` - Start backend server
@@ -63,22 +63,22 @@ wellmed-ai/
 - `npm run build` - Build for production
 - `npm run preview` - Preview production build
 
-## 🛡️ Security Notes
+## **Security Notes**
 
-- ✅ API key is stored server-side only
-- ✅ No sensitive data in client-side code
-- ✅ CORS enabled for local development
-- ✅ Environment variables protected by .gitignore
+- API key is stored server-side only
+- No sensitive data in client-side code
+- CORS enabled for local development
+- Environment variables protected by `.gitignore`
 
-## 🚨 Important
+## **Important**
 
 Never commit your `.env` file to version control. It's already added to `.gitignore` to prevent accidental commits.
 
-## 📝 Features
+## **Features**
 
 - Medical coding assistance
-- DRG code analysis
-- CPT code explanations
+- **DRG code** analysis
+- **CPT code** explanations
 - Voice input support
 - File upload (PDF)
 - Dark/Light theme

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { User, Bot, Loader2, FileText, X, Check, X as XIcon, Sun, Moon } from 'lucide-react';
+import { User, Bot, Loader2, FileText, X, Check, X as XIcon, Sun, Moon, Square } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 import pencilIcon from '../assets/pencil.png';
 import sendIcon from '../assets/send.png';
@@ -24,6 +24,7 @@ const Chat = ({ isDarkMode, toggleTheme }) => {
   const [editingMessageId, setEditingMessageId] = useState(null);
   const [editText, setEditText] = useState('');
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [abortController, setAbortController] = useState(null);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const recognitionRef = useRef(null);
@@ -271,6 +272,9 @@ const Chat = ({ isDarkMode, toggleTheme }) => {
   };
 
   const generateAIResponse = async (userMessage) => {
+    // Create new AbortController for this request
+    const controller = new AbortController();
+    setAbortController(controller);
     setIsLoading(true);
     setStreamingMessage('');
 
@@ -284,7 +288,7 @@ const Chat = ({ isDarkMode, toggleTheme }) => {
           messages: [
             {
               role: 'system',
-              content: 'You are a helpful medical coding assistant. Provide clear, accurate answers about DRG codes, CPT codes, medical coding guidelines, and related topics. Format your responses in a structured way similar to ChatGPT with clear sections, bullet points, and explanations. Use markdown formatting for better readability.'
+              content: 'You are a helpful medical coding assistant. Provide clear, accurate answers about DRG codes, CPT codes, medical coding guidelines, and related topics. Format your responses in a structured way similar to ChatGPT with clear sections, bullet points, and explanations. Use markdown formatting for better readability. When using bold text, use **text** format but ensure it renders as bold without showing the ** symbols. Use *text* for italic and `text` for inline code.'
             },
             {
               role: 'user',
@@ -294,7 +298,8 @@ const Chat = ({ isDarkMode, toggleTheme }) => {
           pdfContent: pdfContent, // Include PDF content if available
           max_tokens: 1000,
           temperature: 0.7
-        })
+        }),
+        signal: controller.signal
       });
 
       const data = await response.json();
@@ -307,20 +312,26 @@ const Chat = ({ isDarkMode, toggleTheme }) => {
         const words = aiResponse.split(' ');
         
         for (let i = 0; i < words.length; i++) {
+          // Check if request was aborted during streaming
+          if (controller.signal.aborted) {
+            break;
+          }
           streamedText += words[i] + ' ';
           setStreamingMessage(streamedText.trim());
           await new Promise(resolve => setTimeout(resolve, 50));
         }
 
-        const assistantMessage = {
-          id: Date.now() + 1,
-          type: 'assistant',
-          content: aiResponse,
-          timestamp: new Date()
-        };
+        if (!controller.signal.aborted) {
+          const assistantMessage = {
+            id: Date.now() + 1,
+            type: 'assistant',
+            content: aiResponse,
+            timestamp: new Date()
+          };
 
-        setMessages(prev => [...prev, assistantMessage]);
-        setStreamingMessage('');
+          setMessages(prev => [...prev, assistantMessage]);
+          setStreamingMessage('');
+        }
       } else {
         const errorMessage = {
           id: Date.now() + 1,
@@ -331,16 +342,29 @@ const Chat = ({ isDarkMode, toggleTheme }) => {
         setMessages(prev => [...prev, errorMessage]);
       }
     } catch (error) {
-      console.error('Error calling Gemini API:', error);
-      const errorMessage = {
-        id: Date.now() + 1,
-        type: 'assistant',
-        content: 'I apologize, but I encountered an error while processing your request. Please check your connection and try again.',
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, errorMessage]);
+      if (error.name === 'AbortError') {
+        console.log('Request was aborted');
+        const stoppedMessage = {
+          id: Date.now() + 1,
+          type: 'assistant',
+          content: 'Response generation was stopped.',
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, stoppedMessage]);
+        setStreamingMessage('');
+      } else {
+        console.error('Error calling API:', error);
+        const errorMessage = {
+          id: Date.now() + 1,
+          type: 'assistant',
+          content: 'I apologize, but I encountered an error while processing your request. Please check your connection and try again.',
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, errorMessage]);
+      }
     } finally {
       setIsLoading(false);
+      setAbortController(null);
     }
   };
 
@@ -404,29 +428,14 @@ const Chat = ({ isDarkMode, toggleTheme }) => {
         
         // Handle bullet points
         if (line.startsWith('* ') || line.startsWith('- ')) {
-          return <li key={index} className="markdown-li">{line.replace(/^[\*\-]\s/, '')}</li>;
+          const content = line.replace(/^[\*\-]\s/, '');
+          return <li key={index} className="markdown-li">{parseInlineFormatting(content)}</li>;
         }
         
         // Handle numbered lists
         if (/^\d+\.\s/.test(line)) {
-          return <li key={index} className="markdown-li">{line.replace(/^\d+\.\s/, '')}</li>;
-        }
-        
-        // Handle bold text
-        if (line.includes('**')) {
-          const parts = line.split('**');
-          return (
-            <p key={index} className="markdown-p">
-              {parts.map((part, i) => 
-                i % 2 === 1 ? <strong key={i}>{part}</strong> : part
-              )}
-            </p>
-          );
-        }
-        
-        // Handle checkmarks and special formatting
-        if (line.includes('✅') || line.includes('✓')) {
-          return <p key={index} className="markdown-p checkmark">{line}</p>;
+          const content = line.replace(/^\d+\.\s/, '');
+          return <li key={index} className="markdown-li">{parseInlineFormatting(content)}</li>;
         }
         
         // Handle empty lines
@@ -434,13 +443,62 @@ const Chat = ({ isDarkMode, toggleTheme }) => {
           return <br key={index} />;
         }
         
-        // Regular paragraph
-        return <p key={index} className="markdown-p">{line}</p>;
+        // Regular paragraph with inline formatting
+        return <p key={index} className="markdown-p">{parseInlineFormatting(line)}</p>;
       });
+  };
+
+  // Helper function to parse inline formatting (bold, italic, code)
+  const parseInlineFormatting = (text) => {
+    if (!text) return text;
+    
+    // Handle inline code with backticks
+    const codeRegex = /`([^`]+)`/g;
+    let result = text.replace(codeRegex, (match, code) => {
+      return `<code class="inline-code">${code}</code>`;
+    });
+    
+    // Handle bold text with **
+    const boldRegex = /\*\*([^*]+)\*\*/g;
+    result = result.replace(boldRegex, (match, boldText) => {
+      return `<strong>${boldText}</strong>`;
+    });
+    
+    // Handle italic text with *
+    const italicRegex = /\*([^*]+)\*/g;
+    result = result.replace(italicRegex, (match, italicText) => {
+      return `<em>${italicText}</em>`;
+    });
+    
+    // Convert to JSX elements
+    return result.split(/(<[^>]+>[^<]*<\/[^>]+>)/).map((part, i) => {
+      if (part.startsWith('<code class="inline-code">')) {
+        const code = part.match(/<code class="inline-code">([^<]+)<\/code>/);
+        return <code key={i} className="inline-code">{code[1]}</code>;
+      }
+      if (part.startsWith('<strong>')) {
+        const bold = part.match(/<strong>([^<]+)<\/strong>/);
+        return <strong key={i}>{bold[1]}</strong>;
+      }
+      if (part.startsWith('<em>')) {
+        const italic = part.match(/<em>([^<]+)<\/em>/);
+        return <em key={i}>{italic[1]}</em>;
+      }
+      return part;
+    });
   };
 
   const toggleFullscreen = () => {
     setIsFullscreen(!isFullscreen);
+  };
+
+  const handleStopGeneration = () => {
+    if (abortController) {
+      abortController.abort();
+      setAbortController(null);
+      setIsLoading(false);
+      setStreamingMessage('');
+    }
   };
 
   const clearChatHistory = () => {
@@ -647,6 +705,16 @@ const Chat = ({ isDarkMode, toggleTheme }) => {
           >
             {editingMessageId ? <Check size={20} /> : <img src={sendIcon} alt="Send" className="send-icon" />}
           </button>
+          {isLoading && (
+            <button 
+              onClick={handleStopGeneration}
+              className="stop-btn"
+              title="Stop generation"
+            >
+              <Square size={16} />
+              Stop
+            </button>
+          )}
         </div>
         <div className="input-hint">
           Press Enter to send, Shift+Enter for new line, or click the microphone to speak

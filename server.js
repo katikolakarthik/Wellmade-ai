@@ -98,6 +98,11 @@ Please provide clear, accurate answers about DRG codes, CPT codes, medical codin
       }
     }
 
+    // Check if request was aborted
+    if (req.aborted) {
+      return res.status(499).json({ error: 'Request aborted' });
+    }
+
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -112,6 +117,11 @@ Please provide clear, accurate answers about DRG codes, CPT codes, medical codin
       }),
     });
 
+    // Check if request was aborted after fetch
+    if (req.aborted) {
+      return res.status(499).json({ error: 'Request aborted' });
+    }
+
     const data = await response.json();
 
     if (!response.ok) {
@@ -124,6 +134,9 @@ Please provide clear, accurate answers about DRG codes, CPT codes, medical codin
 
     res.json(data);
   } catch (error) {
+    if (error.name === 'AbortError' || req.aborted) {
+      return res.status(499).json({ error: 'Request aborted' });
+    }
     console.error('Server Error:', error);
     res.status(500).json({
       error: 'Internal Server Error',

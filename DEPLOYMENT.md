@@ -1,11 +1,11 @@
-# 🚀 Production Deployment Guide
+# **Production Deployment Guide**
 
-## Prerequisites
+## **Prerequisites**
 - Node.js 16+ installed
 - Your OpenAI API key
 - A hosting platform (Heroku, Vercel, Railway, etc.)
 
-## Environment Variables for Production
+## **Environment Variables for Production**
 
 Create these environment variables on your hosting platform:
 
@@ -15,30 +15,31 @@ PORT=5000
 OPENAI_API_KEY=your_actual_openai_api_key
 ```
 
-## Deployment Options
+## **Deployment Options**
 
-### Option 1: Heroku
+### **Option 1: Heroku**
 1. Install Heroku CLI
 2. Create a new Heroku app
 3. Set environment variables in Heroku dashboard
 4. Deploy:
+
 ```bash
 git add .
 git commit -m "Production ready"
 git push heroku main
 ```
 
-### Option 2: Vercel
+### **Option 2: Vercel**
 1. Connect your GitHub repo to Vercel
 2. Set environment variables in Vercel dashboard
 3. Deploy automatically on push
 
-### Option 3: Railway
+### **Option 3: Railway**
 1. Connect your GitHub repo to Railway
 2. Set environment variables in Railway dashboard
 3. Deploy automatically
 
-## Build Commands
+## **Build Commands**
 
 ```bash
 # Install dependencies
@@ -51,22 +52,22 @@ npm run build
 npm start
 ```
 
-## Security Checklist
+## **Security Checklist**
 
-- ✅ API key stored server-side only
-- ✅ Environment variables configured
-- ✅ CORS properly configured
-- ✅ Error handling implemented
-- ✅ Static files served correctly
-- ✅ Health check endpoint available
+- API key stored server-side only
+- Environment variables configured
+- CORS properly configured
+- Error handling implemented
+- Static files served correctly
+- Health check endpoint available
 
-## Testing Production
+## **Testing Production**
 
 1. Test the health endpoint: `https://your-domain.com/api/health`
 2. Test the chat functionality
 3. Verify all features work correctly
 
-## Monitoring
+## **Monitoring**
 
 - Monitor API usage in OpenAI dashboard
 - Set up error logging
