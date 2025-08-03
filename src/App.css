@@ -1063,6 +1063,31 @@ body {
   text-align: left;
 }
 
+/* User message markdown overrides */
+.message.user .markdown-p {
+  color: white;
+}
+
+.message.user .markdown-h1,
+.message.user .markdown-h2,
+.message.user .markdown-h3 {
+  color: white;
+}
+
+.message.user .markdown-p strong {
+  color: white;
+}
+
+.message.user .markdown-li {
+  color: white;
+}
+
+.message.user .inline-code {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
 /* Dark mode markdown styles */
 .dark .markdown-h1 {
   color: #f7fafc;
@@ -1606,6 +1631,20 @@ body {
     height: 40px;
   }
 
+  /* Mobile stop button optimizations */
+  .stop-btn {
+    padding: 8px 16px;
+    font-size: 12px;
+    border-radius: 8px;
+    gap: 6px;
+    min-width: 80px;
+  }
+
+  .stop-btn svg {
+    width: 14px;
+    height: 14px;
+  }
+
   .chat-header {
     padding: 15px;
   }
@@ -1700,6 +1739,75 @@ body {
     padding: 0 8px 4px;
     margin-top: 4px;
   }
+
+  /* Mobile markdown improvements */
+  .markdown-h1 {
+    font-size: 18px;
+    margin: 12px 0 8px 0;
+  }
+
+  .markdown-h2 {
+    font-size: 16px;
+    margin: 10px 0 6px 0;
+  }
+
+  .markdown-h3 {
+    font-size: 14px;
+    margin: 8px 0 4px 0;
+  }
+
+  .markdown-p {
+    font-size: 13px;
+    line-height: 1.5;
+    margin: 6px 0;
+  }
+
+  .markdown-li {
+    font-size: 13px;
+    line-height: 1.5;
+    margin: 4px 0;
+  }
+
+  .inline-code {
+    font-size: 12px;
+    padding: 1px 4px;
+  }
+
+  /* Mobile touch improvements */
+  .send-button, .mic-button, .upload-file-btn {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .stop-btn {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  /* Mobile input improvements */
+  .chat-input {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+  }
+
+  /* Mobile scroll improvements */
+  .messages-container {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+
+  /* Mobile safe area support */
+  .chat-container.fullscreen {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  .chat-input-container {
+    padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  }
 }
 
 @media (max-width: 480px) {
@@ -1783,6 +1891,20 @@ body {
     flex-shrink: 0;
   }
 
+  /* Small mobile stop button */
+  .stop-btn {
+    padding: 6px 12px;
+    font-size: 11px;
+    border-radius: 6px;
+    gap: 4px;
+    min-width: 70px;
+  }
+
+  .stop-btn svg {
+    width: 12px;
+    height: 12px;
+  }
+
   .file-upload-section {
     margin-bottom: 6px;
   }
@@ -1831,5 +1953,74 @@ body {
     font-size: 9px;
     padding: 0 6px 4px;
     margin-top: 2px;
+  }
+
+  /* Small mobile markdown improvements */
+  .markdown-h1 {
+    font-size: 16px;
+    margin: 10px 0 6px 0;
+  }
+
+  .markdown-h2 {
+    font-size: 14px;
+    margin: 8px 0 4px 0;
+  }
+
+  .markdown-h3 {
+    font-size: 12px;
+    margin: 6px 0 3px 0;
+  }
+
+  .markdown-p {
+    font-size: 12px;
+    line-height: 1.4;
+    margin: 4px 0;
+  }
+
+  .markdown-li {
+    font-size: 12px;
+    line-height: 1.4;
+    margin: 3px 0;
+  }
+
+  .inline-code {
+    font-size: 11px;
+    padding: 1px 3px;
+  }
+
+  /* Mobile touch improvements */
+  .send-button, .mic-button, .upload-file-btn {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .stop-btn {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  /* Mobile input improvements */
+  .chat-input {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+  }
+
+  /* Mobile scroll improvements */
+  .messages-container {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+
+  /* Mobile safe area support */
+  .chat-container.fullscreen {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  .chat-input-container {
+    padding-bottom: calc(12px + env(safe-area-inset-bottom));
   }
 }
