@@ -294,105 +294,109 @@ useEffect(() => {
     setInputMessage(''); // Clear the main input
   };
 
-  const generateAIResponse = async (userMessage) => {
-    // Create new AbortController for this request
-    const controller = new AbortController();
-    setAbortController(controller);
-    setIsLoading(true);
-    setStreamingMessage('');
+  
 
-    try {
-      const response = await fetch(`${API_BASE_URL}/chat`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({  
-sessionId: sessionId,
-      messages: [  
-        {  
-          role: 'system',  
-          content: 'You are a helpful medical coding assistant. Provide clear, accurate answers about DRG codes, CPT codes, medical coding guidelines, and related topics. Format your responses in a structured way similar to ChatGPT with clear sections, bullet points, and explanations. Use markdown formatting for better readability. When using bold text, use **text** format but ensure it renders as bold without showing the ** symbols. Use *text* for italic and `text` for inline code.'  
-        },  
-        {  
-          role: 'user',  
-          content: userMessage  
-        }  
-      ],  
-      pdfContent: pdfContent, // Include PDF content if available  
-      max_tokens: 1000,  
-      temperature: 0.7  
-    }),  
-    signal: controller.signal  
-  });  
-        signal: controller.signal
-      });
+const generateAIResponse = async (userMessage) => {
+  const controller = new AbortController();
+  setAbortController(controller);
+  setIsLoading(true);
+  setStreamingMessage('');
 
-      const data = await response.json();
-      
-      if (data.choices && data.choices[0] && data.choices[0].message) {
-        const aiResponse = data.choices[0].message.content;
-        
-        // Simulate streaming effect
-        let streamedText = '';
-        const words = aiResponse.split(' ');
-        
-        for (let i = 0; i < words.length; i++) {
-          // Check if request was aborted during streaming
-          if (controller.signal.aborted) {
-            break;
+  try {
+    const response = await fetch(`${API_BASE_URL}/chat`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        sessionId: sessionId,
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a helpful medical coding assistant. Provide clear, accurate answers about DRG codes, CPT codes, medical coding guidelines, and related topics. Format your responses in a structured way similar to ChatGPT with clear sections, bullet points, and explanations. Use markdown formatting for better readability. When using bold text, use **text** format but ensure it renders as bold without showing the ** symbols. Use *text* for italic and `text` for inline code.'
+          },
+          {
+            role: 'user',
+            content: userMessage
           }
-          streamedText += words[i] + ' ';
-          setStreamingMessage(streamedText.trim());
-          await new Promise(resolve => setTimeout(resolve, 50));
-        }
+        ],
+        pdfContent: pdfContent,
+        max_tokens: 1000,
+        temperature: 0.7
+      }),
+      signal: controller.signal // ✅ Correctly placed here
+    });
 
-        if (!controller.signal.aborted) {
-          const assistantMessage = {
-            id: Date.now() + 1,
-            type: 'assistant',
-            content: aiResponse,
-            timestamp: new Date()
-          };
+    const data = await response.json();
 
-          setMessages(prev => [...prev, assistantMessage]);
-          setStreamingMessage('');
+    if (data.choices && data.choices[0] && data.choices[0].message) {
+      const aiResponse = data.choices[0].message.content;
+
+      // Simulate streaming effect
+      let streamedText = '';
+      const words = aiResponse.split(' ');
+
+      for (let i = 0; i < words.length; i++) {
+        if (controller.signal.aborted) {
+          break;
         }
-      } else {
-        const errorMessage = {
-          id: Date.now() + 1,
-          type: 'assistant',
-          content: 'I apologize, but I encountered an issue processing your request. Please try again.',
-          timestamp: new Date()
-        };
-        setMessages(prev => [...prev, errorMessage]);
+        streamedText += words[i] + ' ';
+        setStreamingMessage(streamedText.trim());
+        await new Promise(resolve => setTimeout(resolve, 50));
       }
-    } catch (error) {
-      if (error.name === 'AbortError') {
-        console.log('Request was aborted');
-        const stoppedMessage = {
+
+      if (!controller.signal.aborted) {
+        const assistantMessage = {
           id: Date.now() + 1,
           type: 'assistant',
-          content: 'Response generation was stopped.',
+          content: aiResponse,
           timestamp: new Date()
         };
-        setMessages(prev => [...prev, stoppedMessage]);
+
+        setMessages(prev => [...prev, assistantMessage]);
         setStreamingMessage('');
-      } else {
-        console.error('Error calling API:', error);
-        const errorMessage = {
-          id: Date.now() + 1,
-          type: 'assistant',
-          content: 'I apologize, but I encountered an error while processing your request. Please check your connection and try again.',
-          timestamp: new Date()
-        };
-        setMessages(prev => [...prev, errorMessage]);
       }
-    } finally {
-      setIsLoading(false);
-      setAbortController(null);
+    } else {
+      const errorMessage = {
+        id: Date.now() + 1,
+        type: 'assistant',
+        content: 'I apologize, but I encountered an issue processing your request. Please try again.',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMessage]);
     }
-  };
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      console.log('Request was aborted');
+      const stoppedMessage = {
+        id: Date.now() + 1,
+        type: 'assistant',
+        content: 'Response generation was stopped.',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, stoppedMessage]);
+      setStreamingMessage('');
+    } else {
+      console.error('Error calling API:', error);
+      const errorMessage = {
+        id: Date.now() + 1,
+        type: 'assistant',
+        content: 'I apologize, but I encountered an error while processing your request. Please check your connection and try again.',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    }
+  } finally {
+    setIsLoading(false);
+    setAbortController(null);
+  }
+};
+
+
+
+
+
+
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || isLoading) return;
