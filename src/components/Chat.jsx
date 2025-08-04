@@ -32,7 +32,7 @@ const Chat = ({ isDarkMode, toggleTheme }) => {
   const editInputRef = useRef(null);
 
 
-const [sessionId, setSessionId] = useState('');
+const [sessionId, setSessionId] = useState('user23');
 
 useEffect(() => {
   let storedSessionId = localStorage.getItem('wellmed_session_id');
