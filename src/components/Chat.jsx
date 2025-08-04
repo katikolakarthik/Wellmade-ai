@@ -309,21 +309,15 @@ const generateAIResponse = async (userMessage) => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        sessionId: sessionId,
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a helpful medical coding assistant. Provide clear, accurate answers about DRG codes, CPT codes, medical coding guidelines, and related topics. Format your responses in a structured way similar to ChatGPT with clear sections, bullet points, and explanations. Use markdown formatting for better readability. When using bold text, use **text** format but ensure it renders as bold without showing the ** symbols. Use *text* for italic and `text` for inline code.'
-          },
-          {
-            role: 'user',
-            content: userMessage
-          }
-        ],
-        pdfContent: pdfContent,
-        max_tokens: 1000,
-        temperature: 0.7
-      }),
+  sessionId: sessionId,
+  message: {
+    role: 'user',
+    content: userMessage
+  },
+  pdfContent: pdfContent,
+  max_tokens: 1000,
+  temperature: 0.7
+}),
       signal: controller.signal // ✅ Correctly placed here
     });
 
