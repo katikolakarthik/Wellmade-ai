@@ -284,29 +284,23 @@ const Chat = ({ isDarkMode, toggleTheme }) => {
         headers: {
           'Content-Type': 'application/json'
         },
-        const fullContextMessages = [
-  {
-    role: 'system',
-    content: 'You are a helpful medical coding assistant. Provide clear, accurate answers about DRG codes, CPT codes, medical coding guidelines, and related topics. Format your responses in a structured way similar to ChatGPT with clear sections, bullet points, and explanations. Use markdown formatting for better readability. When using bold text, use **text** format but ensure it renders as bold without showing the ** symbols. Use *text* for italic and `text` for inline code.'
-  },
-  ...messages
-    .filter(msg => msg.type === 'user' || msg.type === 'assistant')
-    .map(msg => ({
-      role: msg.type === 'user' ? 'user' : 'assistant',
-      content: msg.content
-    })),
-  {
-    role: 'user',
-    content: userMessage
-  }
-];
-
-body: JSON.stringify({
-  messages: fullContextMessages,
-  pdfContent: pdfContent,
-  max_tokens: 1000,
-  temperature: 0.7
-}),
+        body: JSON.stringify({  
+      messages: [  
+        {  
+          role: 'system',  
+          content: 'You are a helpful medical coding assistant. Provide clear, accurate answers about DRG codes, CPT codes, medical coding guidelines, and related topics. Format your responses in a structured way similar to ChatGPT with clear sections, bullet points, and explanations. Use markdown formatting for better readability. When using bold text, use **text** format but ensure it renders as bold without showing the ** symbols. Use *text* for italic and `text` for inline code.'  
+        },  
+        {  
+          role: 'user',  
+          content: userMessage  
+        }  
+      ],  
+      pdfContent: pdfContent, // Include PDF content if available  
+      max_tokens: 1000,  
+      temperature: 0.7  
+    }),  
+    signal: controller.signal  
+  });  
         signal: controller.signal
       });
 
