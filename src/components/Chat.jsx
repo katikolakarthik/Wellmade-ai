@@ -31,6 +31,29 @@ const Chat = ({ isDarkMode, toggleTheme }) => {
   const fileInputRef = useRef(null);
   const editInputRef = useRef(null);
 
+
+const [sessionId, setSessionId] = useState('');
+
+useEffect(() => {
+  let storedSessionId = localStorage.getItem('wellmed_session_id');
+  if (!storedSessionId) {
+    storedSessionId = `sess-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+    localStorage.setItem('wellmed_session_id', storedSessionId);
+  }
+  setSessionId(storedSessionId);
+}, []);
+
+
+
+
+
+
+
+
+
+
+
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -285,6 +308,7 @@ const Chat = ({ isDarkMode, toggleTheme }) => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({  
+sessionId: sessionId,
       messages: [  
         {  
           role: 'system',  
