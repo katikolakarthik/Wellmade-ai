@@ -248,7 +248,7 @@ useEffect(() => {
   content: question  // ✅ Use correct variable
 },
    pdfContent: pdfContent, // Include PDF content if available
-          max_tokens: 1000,
+          max_tokens: 3500,
           temperature: 0.7
         }),
         signal: controller.signal
