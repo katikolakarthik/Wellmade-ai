@@ -315,7 +315,7 @@ const generateAIResponse = async (userMessage) => {
     content: userMessage
   },
   pdfContent: pdfContent,
-  max_tokens: 1000,
+  max_tokens: 2500,
   temperature: 0.7
 }),
       signal: controller.signal // ✅ Correctly placed here
