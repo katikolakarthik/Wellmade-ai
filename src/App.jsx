@@ -244,10 +244,10 @@ useEffect(() => {
         body: JSON.stringify({
             sessionId: sessionId,
   message: {
-    role: 'user',
-    content: userMessage
-  },
-          pdfContent: pdfContent, // Include PDF content if available
+  role: 'user',
+  content: question  // ✅ Use correct variable
+},
+   pdfContent: pdfContent, // Include PDF content if available
           max_tokens: 1000,
           temperature: 0.7
         }),
