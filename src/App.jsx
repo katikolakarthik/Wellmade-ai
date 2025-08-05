@@ -22,6 +22,25 @@ function App() {
   const recognitionRef = useRef(null);
   const questionInputRef = useRef(null);
 
+const [sessionId, setSessionId] = useState('user23');
+
+useEffect(() => {
+  let storedSessionId = localStorage.getItem('wellmed_session_id');
+  if (!storedSessionId) {
+    storedSessionId = `sess-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+    localStorage.setItem('wellmed_session_id', storedSessionId);
+  }
+  setSessionId(storedSessionId);
+}, []);
+
+
+
+
+
+
+
+
+
   // Markdown rendering function for structured responses
   const renderMarkdownContent = (content) => {
     // Simple markdown rendering for topic doubt answers
