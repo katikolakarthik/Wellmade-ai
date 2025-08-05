@@ -242,16 +242,11 @@ useEffect(() => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          messages: [
-            {
-              role: 'system',
-              content: 'You are a helpful medical coding assistant. Provide clear, accurate answers about DRG codes, CPT codes, medical coding guidelines, and related topics. Format your responses in a structured way similar to ChatGPT with clear sections, bullet points, and explanations. Use markdown formatting for better readability.'
-            },
-            {
-              role: 'user',
-              content: question
-            }
-          ],
+            sessionId: sessionId,
+  message: {
+    role: 'user',
+    content: userMessage
+  },
           pdfContent: pdfContent, // Include PDF content if available
           max_tokens: 1000,
           temperature: 0.7
