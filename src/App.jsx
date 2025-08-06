@@ -323,39 +323,44 @@ useEffect(() => {
     alert('Answer bookmarked successfully!');
   };
 
-  const handleFileUpload = async (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      if (file.type === 'application/pdf') {
-        setUploadedFile(file);
-        
-        // Analyze the PDF
-        try {
-          const formData = new FormData();
-          formData.append('pdf', file);
+  
 
-          const response = await fetch(`${API_BASE_URL}/analyze-pdf`, {
-            method: 'POST',
-            body: formData,
-          });
+const handleFileUpload = async (event) => {
+  const file = event.target.files[0];
+  if (file) {
+    if (file.type === 'application/pdf') {
+      setUploadedFile(file);
 
-          const data = await response.json();
-          
-          if (data.success) {
-            setPdfContent(data.text);
-            setQuestion(`Uploaded PDF: ${file.name}\n\nPlease analyze this medical case and provide coding recommendations based on the document content.`);
-          } else {
-            throw new Error(data.error || 'Failed to analyze PDF');
-          }
-        } catch (error) {
-          console.error('PDF Analysis Error:', error);
-          alert(`Failed to analyze PDF: ${error.message}. Please try uploading a different PDF file.`);
+      try {
+        const formData = new FormData();
+        formData.append('pdf', file);
+        formData.append('sessionId', sessionId); // ✅ Add sessionId here
+
+        const response = await fetch(`${API_BASE_URL}/analyze-pdf`, {
+          method: 'POST',
+          body: formData,
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          setPdfContent(data.text);
+          setQuestion(`Uploaded PDF: ${file.name}\n\nPlease analyze this medical case and provide coding recommendations based on the document content.`);
+        } else {
+          throw new Error(data.error || 'Failed to analyze PDF');
         }
-      } else {
-        alert('Please upload a PDF file.');
+      } catch (error) {
+        console.error('PDF Analysis Error:', error);
+        alert(`Failed to analyze PDF: ${error.message}. Please try uploading a different PDF file.`);
       }
+    } else {
+      alert('Please upload a PDF file.');
     }
-  };
+  }
+};
+
+
+
 
   const handleUploadClick = () => {
     if (uploadedFile) {
