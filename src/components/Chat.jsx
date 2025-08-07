@@ -189,7 +189,6 @@ const handleFileUpload = async (event) => {
     if (file.type === 'application/pdf') {
       setUploadedFile(file);
 
-      // Add a message showing the uploaded file
       const fileMessage = {
         id: Date.now(),
         type: 'user',
@@ -199,11 +198,12 @@ const handleFileUpload = async (event) => {
       };
       setMessages(prev => [...prev, fileMessage]);
 
-      // Analyze the PDF
       try {
         const formData = new FormData();
         formData.append('pdf', file);
-        formData.append('sessionId', sessionId); // ✅ Append sessionId here
+
+        // ✅ Pass the sessionId from your app state
+        formData.append('sessionId', sessionId); // make sure sessionId is defined!
 
         const response = await fetch(`${API_BASE_URL}/analyze-pdf`, {
           method: 'POST',
@@ -241,6 +241,8 @@ const handleFileUpload = async (event) => {
     }
   }
 };
+
+
 
 
 
