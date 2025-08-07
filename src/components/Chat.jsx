@@ -181,65 +181,70 @@ useEffect(() => {
     }
   };
 
-  const handleFileUpload = async (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      if (file.type === 'application/pdf') {
-        setUploadedFile(file);
-        
-        // Add a message showing the uploaded file
-        const fileMessage = {
-          id: Date.now(),
-          type: 'user',
-          content: `📎 Uploaded PDF: ${file.name}`,
-          timestamp: new Date(),
-          isFileUpload: true
-        };
-        setMessages(prev => [...prev, fileMessage]);
+  
 
-        // Analyze the PDF
-        try {
-          const formData = new FormData();
-          formData.append('pdf', file);
+const handleFileUpload = async (event) => {
+  const file = event.target.files[0];
+  if (file) {
+    if (file.type === 'application/pdf') {
+      setUploadedFile(file);
 
-          const response = await fetch(`${API_BASE_URL}/analyze-pdf`, {
-            method: 'POST',
-            body: formData,
-          });
+      // Add a message showing the uploaded file
+      const fileMessage = {
+        id: Date.now(),
+        type: 'user',
+        content: `📎 Uploaded PDF: ${file.name}`,
+        timestamp: new Date(),
+        isFileUpload: true
+      };
+      setMessages(prev => [...prev, fileMessage]);
 
-          const data = await response.json();
-          
-          if (data.success) {
-            setPdfContent(data.text);
-            
-            // Add a message showing PDF analysis
-            const analysisMessage = {
-              id: Date.now() + 1,
-              type: 'assistant',
-              content: `✅ PDF analyzed successfully! I've extracted ${data.pages} pages of content. I can now answer questions based on this document.`,
-              timestamp: new Date()
-            };
-            setMessages(prev => [...prev, analysisMessage]);
-          } else {
-            throw new Error(data.error || 'Failed to analyze PDF');
-          }
-        } catch (error) {
-          console.error('PDF Analysis Error:', error);
-          
-          // Add error message
-          const errorMessage = {
+      // Analyze the PDF
+      try {
+        const formData = new FormData();
+        formData.append('pdf', file);
+        formData.append('sessionId', sessionId); // ✅ Append sessionId here
+
+        const response = await fetch(`${API_BASE_URL}/analyze-pdf`, {
+          method: 'POST',
+          body: formData,
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          setPdfContent(data.text);
+
+          const analysisMessage = {
             id: Date.now() + 1,
             type: 'assistant',
-            content: `❌ Failed to analyze PDF: ${error.message}. Please try uploading a different PDF file.`,
+            content: `✅ PDF analyzed successfully! I've extracted ${data.pages} pages of content. I can now answer questions based on this document.`,
             timestamp: new Date()
           };
-          setMessages(prev => [...prev, errorMessage]);
+          setMessages(prev => [...prev, analysisMessage]);
+        } else {
+          throw new Error(data.error || 'Failed to analyze PDF');
         }
-      } else {
-        alert('Please upload a PDF file.');
+      } catch (error) {
+        console.error('PDF Analysis Error:', error);
+
+        const errorMessage = {
+          id: Date.now() + 1,
+          type: 'assistant',
+          content: `❌ Failed to analyze PDF: ${error.message}. Please try uploading a different PDF file.`,
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, errorMessage]);
       }
+    } else {
+      alert('Please upload a PDF file.');
     }
-  };
+  }
+};
+
+
+
+
 
   const handleRemoveFile = () => {
     setUploadedFile(null);
