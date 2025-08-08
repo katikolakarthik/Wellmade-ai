@@ -98,6 +98,30 @@ body {
   background: #1a202c;
 }
 
+.dark .edit-question-btn {
+  background: #2d3748;
+  border-color: #4a5568;
+  color: #a0aec0;
+}
+
+.dark .edit-question-btn:hover:not(:disabled) {
+  background: #4a5568;
+  border-color: #667eea;
+  color: #667eea;
+}
+
+.dark .edit-question-input {
+  background: #1a202c;
+  color: #e2e8f0;
+  border-color: #667eea;
+}
+
+.dark .edit-question-input:focus {
+  background: #2d3748;
+  border-color: #667eea;
+  color: #e2e8f0;
+}
+
 .dark .upload-btn, .dark .speak-btn {
   background: #2d3748;
   border-color: #4a5568;
@@ -499,10 +523,16 @@ body {
   gap: 16px;
 }
 
+.question-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
 .question-input {
   width: 100%;
   min-height: 120px;
   padding: 16px;
+  padding-right: 50px;
   border: 2px solid #e2e8f0;
   border-radius: 12px;
   font-size: 16px;
@@ -515,6 +545,62 @@ body {
   outline: none;
   border-color: #667eea;
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.edit-question-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  background: #f7fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  color: #4a5568;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.7;
+}
+
+.edit-question-btn:hover:not(:disabled) {
+  opacity: 1;
+  background: #edf2f7;
+  border-color: #667eea;
+  color: #667eea;
+}
+
+.edit-question-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.edit-question-container {
+  width: 100%;
+}
+
+.edit-question-input {
+  width: 100%;
+  min-height: 120px;
+  padding: 16px;
+  border: 2px solid #667eea;
+  border-radius: 12px;
+  font-size: 16px;
+  font-family: inherit;
+  resize: vertical;
+  background: #f0f4ff;
+  color: #2d3748;
+  margin-bottom: 12px;
+  transition: all 0.3s ease;
+}
+
+.edit-question-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  background: white;
 }
 
 .button-group {
@@ -557,6 +643,22 @@ body {
   background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
   color: white;
   border-color: #48bb78;
+}
+
+.upload-btn.uploading {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-color: #667eea;
+  opacity: 0.8;
+  cursor: not-allowed;
+}
+
+.upload-file-btn.uploading {
+  background: #667eea;
+  color: white;
+  border-color: #667eea;
+  opacity: 0.8;
+  cursor: not-allowed;
 }
 
 .ask-btn {
@@ -1186,10 +1288,11 @@ body {
 .input-wrapper {
   display: flex;
   gap: 8px;
-  align-items: flex-end;
+  align-items: center;
   padding: 8px 12px;
   max-width: 768px;
   margin: 0 auto;
+  flex-wrap: wrap;
 }
 
 .chat-input {
@@ -1208,6 +1311,7 @@ body {
   overflow-y: auto;
   line-height: 1.4;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  min-width: 200px;
 }
 
 .chat-input:focus {
@@ -1247,6 +1351,7 @@ body {
   transition: all 0.3s ease;
   flex-shrink: 0;
   box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+  margin-left: auto;
 }
 
 .send-button:hover:not(:disabled) {
@@ -1285,6 +1390,7 @@ body {
   transition: all 0.3s ease;
   flex-shrink: 0;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-right: 8px;
 }
 
 .mic-button:hover:not(:disabled) {
@@ -1332,6 +1438,7 @@ body {
   min-width: 40px;
   white-space: nowrap;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
 }
 
 .upload-file-btn .upload-text {
@@ -1370,19 +1477,26 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   background: rgba(255, 255, 255, 0.2);
   border: none;
   border-radius: 50%;
   color: white;
   cursor: pointer;
   transition: all 0.3s ease;
+  font-size: 12px;
+  font-weight: bold;
 }
 
 .remove-file-btn:hover {
   background: rgba(255, 255, 255, 0.3);
   transform: scale(1.1);
+}
+
+.remove-file-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .file-upload-message {
@@ -1453,6 +1567,7 @@ body {
   background: white;
   color: #2d3748;
   margin-bottom: 8px;
+  transition: all 0.3s ease;
 }
 
 .edit-message-input:focus {
@@ -1467,25 +1582,26 @@ body {
   justify-content: flex-end;
 }
 
-.save-edit-btn, .cancel-edit-btn {
+.submit-edit-btn, .cancel-edit-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  padding: 8px 16px;
   border: none;
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-size: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  min-width: 60px;
 }
 
-.save-edit-btn {
+.submit-edit-btn {
   background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
   color: white;
 }
 
-.save-edit-btn:hover {
+.submit-edit-btn:hover {
   transform: scale(1.05);
   box-shadow: 0 2px 8px rgba(72, 187, 120, 0.3);
 }
@@ -1499,6 +1615,34 @@ body {
 .cancel-edit-btn:hover {
   background: #edf2f7;
   color: #2d3748;
+}
+
+/* Dark mode edit styles */
+.dark .edit-message-input {
+  background: #2d3748;
+  color: #e2e8f0;
+  border-color: #667eea;
+}
+
+.dark .edit-message-input:focus {
+  background: #1a202c;
+  border-color: #667eea;
+}
+
+.dark .submit-edit-btn {
+  background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+  color: white;
+}
+
+.dark .cancel-edit-btn {
+  background: #2d3748;
+  color: #e2e8f0;
+  border-color: #4a5568;
+}
+
+.dark .cancel-edit-btn:hover {
+  background: #4a5568;
+  color: #f7fafc;
 }
 
 .input-hint {
