@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Brain, FileText, Mic, CheckCircle, Bookmark, MessageSquare, Sun, Moon, Square } from 'lucide-react';
+import { Brain, FileText, Mic, CheckCircle, Bookmark, MessageSquare, Sun, Moon, Square, Loader2 } from 'lucide-react';
 import Chat from './components/Chat';
 import { API_BASE_URL } from './config';
+import pencilIcon from './assets/pencil.png';
 import './App.css';
 
 function App() {
@@ -18,9 +19,13 @@ function App() {
   const [isListening, setIsListening] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [abortController, setAbortController] = useState(null);
+  const [isPdfUploading, setIsPdfUploading] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editText, setEditText] = useState('');
   const fileInputRef = useRef(null);
   const recognitionRef = useRef(null);
   const questionInputRef = useRef(null);
+  const editInputRef = useRef(null);
 
 const [sessionId, setSessionId] = useState('user23');
 
@@ -329,6 +334,7 @@ const handleFileUpload = async (event) => {
   const file = event.target.files[0];
   if (file) {
     if (file.type === 'application/pdf') {
+      setIsPdfUploading(true);
       setUploadedFile(file);
 
       try {
@@ -352,6 +358,10 @@ const handleFileUpload = async (event) => {
       } catch (error) {
         console.error('PDF Analysis Error:', error);
         alert(`Failed to analyze PDF: ${error.message}. Please try uploading a different PDF file.`);
+        setUploadedFile(null);
+        setPdfContent('');
+      } finally {
+        setIsPdfUploading(false);
       }
     } else {
       alert('Please upload a PDF file.');
@@ -376,6 +386,41 @@ const handleFileUpload = async (event) => {
       fileInputRef.current?.click();
     }
   };
+
+  const handleEditQuestion = () => {
+    setIsEditing(true);
+    setEditText(question);
+  };
+
+  const handleSaveEdit = () => {
+    if (!editText.trim()) return;
+    setQuestion(editText);
+    setIsEditing(false);
+    setEditText('');
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditText('');
+  };
+
+  const handleEditKeyPress = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSaveEdit();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      handleCancelEdit();
+    }
+  };
+
+  // Focus edit input when editing starts
+  useEffect(() => {
+    if (isEditing && editInputRef.current) {
+      editInputRef.current.focus();
+      editInputRef.current.setSelectionRange(editText.length, editText.length);
+    }
+  }, [isEditing, editText.length]);
 
   return (
     <div className="app">
@@ -432,54 +477,118 @@ const handleFileUpload = async (event) => {
             <div className="question-section">
               <h3>Ask a question or upload your summary below:</h3>
               <div className="input-container">
-                <textarea
-                  ref={questionInputRef}
-                  value={question}
-                  onChange={(e) => setQuestion(e.target.value)}
-                  placeholder="Ask your medical coding question..."
-                  className="question-input"
-                />
-                <div className="button-group">
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={handleFileUpload}
-                    accept=".pdf"
-                    style={{ display: 'none' }}
-                  />
-                  <button 
-                    className={`upload-btn ${uploadedFile ? 'uploaded' : ''}`} 
-                    onClick={handleUploadClick}
-                  >
-                    <FileText />
-                    {uploadedFile ? `Remove PDF: ${uploadedFile.name}` : 'Upload Case PDF'}
-                  </button>
-                  <button 
-                    className={`speak-btn ${isListening ? 'listening' : ''}`}
-                    onClick={handleSpeakToAsk}
-                    disabled={isLoading}
-                  >
-                    <Mic />
-                    {isListening ? 'Listening...' : 'Speak to Ask'}
-                  </button>
-                  <button 
-                    className="ask-btn"
-                    onClick={handleAskAI}
-                    disabled={isLoading}
-                  >
-                    {isLoading ? 'Processing...' : 'Ask AI'}
-                  </button>
-                  {isLoading && (
-                    <button 
-                      className="stop-btn"
-                      onClick={handleStopGeneration}
-                      title="Stop generation"
-                    >
-                      <Square size={16} />
-                      Stop
-                    </button>
-                  )}
-                </div>
+                {isEditing ? (
+                  <div className="edit-question-container">
+                    <textarea
+                      ref={editInputRef}
+                      value={editText}
+                      onChange={(e) => setEditText(e.target.value)}
+                      onKeyPress={handleEditKeyPress}
+                      placeholder="Edit your question..."
+                      className="edit-question-input"
+                      style={{ color: isDarkMode ? '#e2e8f0' : '#2d3748' }}
+                      rows={Math.max(3, editText.split('\n').length)}
+                      autoFocus
+                    />
+                    <div className="edit-actions">
+                      <button
+                        onClick={handleSaveEdit}
+                        className="submit-edit-btn"
+                        title="Submit edit"
+                      >
+                        Submit
+                      </button>
+                      <button
+                        onClick={handleCancelEdit}
+                        className="cancel-edit-btn"
+                        title="Cancel edit"
+                      >
+                        X
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="question-input-wrapper">
+                      <textarea
+                        ref={questionInputRef}
+                        value={question}
+                        onChange={(e) => setQuestion(e.target.value)}
+                        placeholder="Ask your medical coding question..."
+                        className="question-input"
+                        style={{ color: isDarkMode ? '#e2e8f0' : '#2d3748' }}
+                      />
+                      <button
+                        onClick={handleEditQuestion}
+                        className="edit-question-btn"
+                        title="Edit question"
+                        disabled={!question.trim()}
+                      >
+                        <img 
+                          src={pencilIcon} 
+                          alt="Edit" 
+                          style={{ 
+                            width: '16px', 
+                            height: '16px',
+                            filter: 'brightness(0.6)',
+                            transition: 'filter 0.3s ease'
+                          }} 
+                        />
+                      </button>
+                    </div>
+                    <div className="button-group">
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleFileUpload}
+                        accept=".pdf"
+                        style={{ display: 'none' }}
+                      />
+                      <button 
+                        className={`upload-btn ${uploadedFile ? 'uploaded' : ''} ${isPdfUploading ? 'uploading' : ''}`} 
+                        onClick={handleUploadClick}
+                        disabled={isPdfUploading}
+                      >
+                        {isPdfUploading ? (
+                          <>
+                            <Loader2 size={16} className="animate-spin" />
+                            Uploading...
+                          </>
+                        ) : (
+                          <>
+                            <FileText />
+                            {uploadedFile ? `Remove PDF: ${uploadedFile.name}` : 'Upload Case PDF'}
+                          </>
+                        )}
+                      </button>
+                      <button 
+                        className={`speak-btn ${isListening ? 'listening' : ''}`}
+                        onClick={handleSpeakToAsk}
+                        disabled={isLoading || isPdfUploading}
+                      >
+                        <Mic />
+                        {isListening ? 'Listening...' : 'Speak to Ask'}
+                      </button>
+                      <button 
+                        className="ask-btn"
+                        onClick={handleAskAI}
+                        disabled={isLoading || isPdfUploading || !question.trim()}
+                      >
+                        {isLoading ? 'Processing...' : 'Ask AI'}
+                      </button>
+                      {isLoading && (
+                        <button 
+                          className="stop-btn"
+                          onClick={handleStopGeneration}
+                          title="Stop generation"
+                        >
+                          <Square size={16} />
+                          Stop
+                        </button>
+                      )}
+                    </div>
+                  </>
+                )}
               </div>
             </div>
 
