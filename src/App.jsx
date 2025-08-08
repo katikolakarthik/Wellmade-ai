@@ -248,7 +248,8 @@ const handleAskAI = async () => {
     }
 
     const data = await response.json();
-    setAnswer(data.answer || "No answer received.");
+setAnswer(data.choices?.[0]?.message?.content || "No answer received.");
+
   } catch (err) {
     console.error("Error asking AI:", err);
     setAnswer("Error retrieving answer.");
