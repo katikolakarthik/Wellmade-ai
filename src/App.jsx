@@ -327,7 +327,7 @@ const handleFileUpload = async (event) => {
         formData.append('pdf', file);
       
 
-        const response = await fetch(`${API_BASE_URL}/analyze-pdf`, {
+        const response = await fetch(`${API_BASE_URL}/api/analyze-pdf`, {
           method: 'POST',
           body: formData,
         });
