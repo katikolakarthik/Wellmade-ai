@@ -322,22 +322,22 @@ const generateAIResponse = async (userMessage) => {
 
   try {
     const response = await fetch(`${API_BASE_URL}/chat`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-  sessionId: sessionId,
-  message: {
-    role: 'user',
-    content: userMessage
-  },
-  pdfContent: pdfContent,
-  max_tokens: 3500,
-  temperature: 0.7
-}),
-      signal: controller.signal // ✅ Correctly placed here
-    });
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    messages: [
+      ...messages.map(msg => ({
+        role: msg.type === 'user' ? 'user' : 'assistant',
+        content: msg.content
+      })),
+      { role: 'user', content: userMessage }
+    ],
+    pdfContent: pdfContent,
+    max_tokens: 3500,
+    temperature: 0.7
+  }),
+  signal: controller.signal
+});
 
     const data = await response.json();
 
