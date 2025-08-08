@@ -27,17 +27,6 @@ function App() {
   const questionInputRef = useRef(null);
   const editInputRef = useRef(null);
 
-const [sessionId, setSessionId] = useState('user23');
-
-useEffect(() => {
-  let storedSessionId = localStorage.getItem('wellmed_session_id');
-  if (!storedSessionId) {
-    storedSessionId = `sess-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
-    localStorage.setItem('wellmed_session_id', storedSessionId);
-  }
-  setSessionId(storedSessionId);
-}, []);
-
 
 
 
@@ -247,7 +236,7 @@ useEffect(() => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-            sessionId: sessionId,
+           
   message: {
   role: 'user',
   content: question  // ✅ Use correct variable
@@ -340,7 +329,7 @@ const handleFileUpload = async (event) => {
       try {
         const formData = new FormData();
         formData.append('pdf', file);
-        formData.append('sessionId', sessionId); // ✅ Add sessionId here
+      
 
         const response = await fetch(`${API_BASE_URL}/analyze-pdf`, {
           method: 'POST',
