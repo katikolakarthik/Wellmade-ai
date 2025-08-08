@@ -220,53 +220,49 @@ function App() {
   };
 
 
+const handleAskAI = async () => {
+  if (!question.trim()) return;
 
-  const handleAskAI = async () => {
-    if (!question.trim()) return;
-    
-    // Create new AbortController for this request
-    const controller = new AbortController();
-    setAbortController(controller);
-    setIsLoading(true);
-    
-    try {
-      const response = await fetch(`${API_BASE_URL}/chat`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        // frontend
-body: JSON.stringify({
-  messages: [
-    { role: 'user', content: question },
-    { role: 'system', content: `PDF Content: ${pdfContent}` }
-  ],
-  max_tokens: 3500,
-  temperature: 0.7
-}),
-        signal: controller.signal
-      });
+  setIsLoading(true);
 
-      const data = await response.json();
-      if (data.choices && data.choices[0] && data.choices[0].message) {
-        const aiResponse = data.choices[0].message.content;
-        setAnswer(aiResponse);
-      } else {
-        setAnswer('I apologize, but I encountered an issue processing your request. Please try again.');
-      }
-    } catch (error) {
-      if (error.name === 'AbortError') {
-        console.log('Request was aborted');
-        setAnswer('Response generation was stopped.');
-      } else {
-        console.error('Error calling API:', error);
-        setAnswer('I apologize, but I encountered an error while processing your request. Please check your connection and try again.');
-      }
-    } finally {
-      setIsLoading(false);
-      setAbortController(null);
+  try {
+    const newMessages = [
+      ...(pdfContent
+        ? [{ role: "system", content: `Reference PDF content:\n${pdfContent}` }]
+        : []),
+      { role: "user", content: question }
+    ];
+
+    const response = await fetch(`${API_BASE_URL}/api/chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        messages: newMessages,
+        max_tokens: 3500,
+        temperature: 0.7
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
     }
-  };
+
+    const data = await response.json();
+    setAnswer(data.answer || "No answer received.");
+  } catch (err) {
+    console.error("Error asking AI:", err);
+    setAnswer("Error retrieving answer.");
+  } finally {
+    setIsLoading(false);
+  }
+};
+  
+
+
+
+
+
+
 
   const promptTemplates = [
     'Give CPT for cholecystectomy with explanation',
