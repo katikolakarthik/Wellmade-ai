@@ -321,7 +321,7 @@ const generateAIResponse = async (userMessage) => {
   setStreamingMessage('');
 
   try {
-    const response = await fetch(`${API_BASE_URL}/chat`, {
+    const response = await fetch(`${API_BASE_URL}/chat1`, {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
