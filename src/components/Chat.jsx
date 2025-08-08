@@ -205,9 +205,8 @@ const handleFileUpload = async (event) => {
         formData.append('pdf', file);
 
         // ✅ Pass the sessionId from your app state
-        formData.append('sessionId', sessionId); // make sure sessionId is defined!
-
-        const response = await fetch(`${API_BASE_URL}/analyze-pdf`, {
+        
+        const response = await fetch(`${API_BASE_URL}/api/analyze-pdf`, {
           method: 'POST',
           body: formData,
         });
