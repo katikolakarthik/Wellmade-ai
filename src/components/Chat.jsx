@@ -25,6 +25,7 @@ const Chat = ({ isDarkMode, toggleTheme }) => {
   const [editText, setEditText] = useState('');
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [abortController, setAbortController] = useState(null);
+  const [isPdfUploading, setIsPdfUploading] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const recognitionRef = useRef(null);
@@ -187,6 +188,7 @@ const handleFileUpload = async (event) => {
   const file = event.target.files[0];
   if (file) {
     if (file.type === 'application/pdf') {
+      setIsPdfUploading(true);
       setUploadedFile(file);
 
       const fileMessage = {
@@ -235,6 +237,10 @@ const handleFileUpload = async (event) => {
           timestamp: new Date()
         };
         setMessages(prev => [...prev, errorMessage]);
+        setUploadedFile(null);
+        setPdfContent('');
+      } finally {
+        setIsPdfUploading(false);
       }
     } else {
       alert('Please upload a PDF file.');
@@ -267,9 +273,16 @@ const handleFileUpload = async (event) => {
   const handleEditMessage = (messageId, content) => {
     setEditingMessageId(messageId);
     setEditText(content);
-    // Enable the main chat input for editing
-    setInputMessage(content);
+    // Don't set the main input for editing, use separate edit state
   };
+
+  // Focus edit input when editing starts
+  useEffect(() => {
+    if (editingMessageId && editInputRef.current) {
+      editInputRef.current.focus();
+      editInputRef.current.setSelectionRange(editText.length, editText.length);
+    }
+  }, [editingMessageId, editText.length]);
 
   const handleSaveEdit = async () => {
     if (!editText.trim()) return;
@@ -289,7 +302,6 @@ const handleFileUpload = async (event) => {
 
     setEditingMessageId(null);
     setEditText('');
-    setInputMessage(''); // Clear the main input
 
     // Regenerate AI response
     await generateAIResponse(editText);
@@ -298,7 +310,6 @@ const handleFileUpload = async (event) => {
   const handleCancelEdit = () => {
     setEditingMessageId(null);
     setEditText('');
-    setInputMessage(''); // Clear the main input
   };
 
   
@@ -425,6 +436,16 @@ const generateAIResponse = async (userMessage) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
+    }
+  };
+
+  const handleEditKeyPress = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSaveEdit();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      handleCancelEdit();
     }
   };
 
@@ -600,53 +621,86 @@ const generateAIResponse = async (userMessage) => {
               {message.type === 'user' ? <User size={20} /> : <Bot size={20} />}
             </div>
             <div className="message-content">
-              <div className="message-text">
-                {message.isFileUpload ? (
-                  <div className="file-upload-message">
-                    <FileText size={16} />
-                    <span>{message.content}</span>
+              {editingMessageId === message.id ? (
+                <div className="edit-message-container">
+                  <textarea
+                    ref={editInputRef}
+                    value={editText}
+                    onChange={(e) => setEditText(e.target.value)}
+                    onKeyPress={handleEditKeyPress}
+                    className="edit-message-input"
+                    style={{ color: isDarkMode ? '#e2e8f0' : '#2d3748' }}
+                    rows={Math.max(2, editText.split('\n').length)}
+                    autoFocus
+                  />
+                  <div className="edit-actions">
+                    <button
+                      onClick={handleSaveEdit}
+                      className="submit-edit-btn"
+                      title="Submit edit"
+                    >
+                      Submit
+                    </button>
+                    <button
+                      onClick={handleCancelEdit}
+                      className="cancel-edit-btn"
+                      title="Cancel edit"
+                    >
+                      X
+                    </button>
                   </div>
-                ) : (
-                  renderMarkdownContent(message.content)
-                )}
-              </div>
-              <div className="message-footer">
-                <div className="message-time">
-                  {formatTime(message.timestamp)}
                 </div>
-                {message.type === 'user' && !message.isFileUpload && (
-                  <button
-                    onClick={() => handleEditMessage(message.id, message.content)}
-                    className="edit-message-btn"
-                    title="Edit message"
-                    style={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      justifyContent: 'center',
-                      width: '28px',
-                      height: '28px',
-                      background: '#f7fafc',
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '4px',
-                      color: '#4a5568',
-                      cursor: 'pointer',
-                      transition: 'all 0.3s ease',
-                      marginLeft: '8px'
-                    }}
-                  >
-                    <img 
-                      src={pencilIcon} 
-                      alt="Edit" 
-                      style={{ 
-                        width: '14px', 
-                        height: '14px',
-                        filter: 'brightness(0.6)',
-                        transition: 'filter 0.3s ease'
-                      }} 
-                    />
-                  </button>
-                )}
-              </div>
+              ) : (
+                <>
+                  <div className="message-text">
+                    {message.isFileUpload ? (
+                      <div className="file-upload-message">
+                        <FileText size={16} />
+                        <span>{message.content}</span>
+                      </div>
+                    ) : (
+                      renderMarkdownContent(message.content)
+                    )}
+                  </div>
+                  <div className="message-footer">
+                    <div className="message-time">
+                      {formatTime(message.timestamp)}
+                    </div>
+                    {message.type === 'user' && !message.isFileUpload && (
+                      <button
+                        onClick={() => handleEditMessage(message.id, message.content)}
+                        className="edit-message-btn"
+                        title="Edit message"
+                        style={{ 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          justifyContent: 'center',
+                          width: '28px',
+                          height: '28px',
+                          background: '#f7fafc',
+                          border: '1px solid #e2e8f0',
+                          borderRadius: '4px',
+                          color: '#4a5568',
+                          cursor: 'pointer',
+                          transition: 'all 0.3s ease',
+                          marginLeft: '8px'
+                        }}
+                      >
+                        <img 
+                          src={pencilIcon} 
+                          alt="Edit" 
+                          style={{ 
+                            width: '14px', 
+                            height: '14px',
+                            filter: 'brightness(0.6)',
+                            transition: 'filter 0.3s ease'
+                          }} 
+                        />
+                      </button>
+                    )}
+                  </div>
+                </>
+              )}
             </div>
           </div>
         ))}
@@ -687,8 +741,13 @@ const generateAIResponse = async (userMessage) => {
             placeholder={editingMessageId ? "Edit your message..." : "Type your message here..."}
             className={`chat-input ${editingMessageId ? 'editing' : ''}`}
             rows={1}
-            disabled={isLoading}
-            style={{ resize: 'none', minHeight: '44px', maxHeight: '120px' }}
+            disabled={isLoading || isPdfUploading}
+            style={{ 
+              resize: 'none', 
+              minHeight: '44px', 
+              maxHeight: '120px',
+              color: isDarkMode ? '#e2e8f0' : '#2d3748'
+            }}
           />
           
           {/* File Upload Button */}
@@ -707,23 +766,29 @@ const generateAIResponse = async (userMessage) => {
                 onClick={handleRemoveFile}
                 className="remove-file-btn"
                 title="Remove file"
+                disabled={isPdfUploading}
               >
-                <X size={14} />
+                X
               </button>
             </div>
           ) : (
             <button
               onClick={handleUploadClick}
-              className="upload-file-btn"
+              className={`upload-file-btn ${isPdfUploading ? 'uploading' : ''}`}
               title="Upload PDF file"
+              disabled={isPdfUploading}
             >
-              <FileText size={16} />
+              {isPdfUploading ? (
+                <Loader2 size={16} className="animate-spin" />
+              ) : (
+                <FileText size={16} />
+              )}
             </button>
           )}
           
           <button
             onClick={handleSpeakToAsk}
-            disabled={isLoading || editingMessageId}
+            disabled={isLoading || editingMessageId || isPdfUploading}
             className={`mic-button ${isListening ? 'listening' : ''}`}
             title={isListening ? 'Stop listening' : 'Speak to type'}
           >
@@ -731,7 +796,7 @@ const generateAIResponse = async (userMessage) => {
           </button>
           <button
             onClick={handleSendMessage}
-            disabled={!inputMessage.trim() || isLoading}
+            disabled={!inputMessage.trim() || isLoading || isPdfUploading}
             className={`send-button ${editingMessageId ? 'editing' : ''}`}
           >
             {editingMessageId ? <Check size={20} /> : <img src={sendIcon} alt="Send" className="send-icon" />}
