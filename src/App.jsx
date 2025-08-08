@@ -235,16 +235,15 @@ function App() {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-           
-  message: {
-  role: 'user',
-  content: question  // ✅ Use correct variable
-},
-   pdfContent: pdfContent, // Include PDF content if available
-          max_tokens: 3500,
-          temperature: 0.7
-        }),
+        // frontend
+body: JSON.stringify({
+  messages: [
+    { role: 'user', content: question },
+    { role: 'system', content: `PDF Content: ${pdfContent}` }
+  ],
+  max_tokens: 3500,
+  temperature: 0.7
+}),
         signal: controller.signal
       });
 
